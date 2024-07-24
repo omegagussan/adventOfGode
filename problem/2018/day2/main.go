@@ -1,6 +1,7 @@
 package main
 
 import (
+	"adventOfGode/common"
 	"os"
 	"strings"
 )
@@ -37,7 +38,7 @@ out:
 					continue
 				}
 				if d[candidate] {
-					println(strings.Join(removeFromSlice(line, i), ""))
+					println(strings.Join(common.RemoveFromSlice(line, i), ""))
 					break out
 				}
 			}
@@ -53,10 +54,6 @@ func cache(sArr []string) map[string]bool {
 	return d
 }
 
-func removeFromSlice(s []string, idx int) []string {
-	return append(s[:idx], s[idx+1:]...)
-
-}
 func part1(input string) int64 {
 	var sArr = strings.Split(input, "\n")
 	var pair int64 = 0

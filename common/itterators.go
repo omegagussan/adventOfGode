@@ -7,3 +7,8 @@ func SliceTo(n int) []int {
 	}
 	return s
 }
+
+func RemoveFromSlice(s []string, idx int) []string {
+	return append(s[:idx], s[idx+1:]...)
+
+}
