@@ -20,9 +20,10 @@ func main() {
 	bytes, _ := os.ReadFile(dir + "/problem/2018/day3/" + "input.txt")
 	var input = string(bytes)
 	println(part1(input))
+	println(part2(input))
 }
 
-func intz(input string) int {
+func toInt(input string) int {
 	i, _ := strconv.ParseInt(input, 10, 64)
 	return int(i)
 }
@@ -34,7 +35,7 @@ func part1(input string) int64 {
 
 	for _, s := range sArr {
 		m := re.FindStringSubmatch(s)
-		var x, y, sx, sy = intz(m[1]), intz(m[2]), intz(m[3]), intz(m[4])
+		var x, y, sx, sy = toInt(m[1]), toInt(m[2]), toInt(m[3]), toInt(m[4])
 		for _, i := range common.SliceTo(sx) {
 			for _, j := range common.SliceTo(sy) {
 				d[pair{x: x + i, y: y + j}] += 1
@@ -51,6 +52,40 @@ func part1(input string) int64 {
 	}
 
 	return res
+}
+
+func part2(input string) int64 {
+	var sArr = strings.Split(input, "\n")
+
+	//value is list of claim ids
+	d := make(map[pair][]int)
+
+	for claimId, s := range sArr {
+		m := re.FindStringSubmatch(s)
+		var x, y, sx, sy = toInt(m[1]), toInt(m[2]), toInt(m[3]), toInt(m[4])
+		for _, i := range common.SliceTo(sx) {
+			for _, j := range common.SliceTo(sy) {
+				//append claimId to the list of claim ids at the cell
+				d[pair{x: x + i, y: y + j}] = append(d[pair{x: x + i, y: y + j}], claimId)
+			}
+		}
+	}
+
+	for i, _ := range sArr {
+		//check if unique in the list of candidates
+		unique := true
+		for _, d := range d {
+			if len(d) > 1 && common.Contains(d, i) {
+				unique = false
+				break
+			}
+		}
+		if unique {
+			//index 1 based
+			return int64(i + 1)
+		}
+	}
+	return -1
 }
 
 //110195 => correct
