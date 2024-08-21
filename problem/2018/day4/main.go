@@ -15,6 +15,7 @@ func main() {
 	bytes, _ := os.ReadFile(dir + "/problem/2018/day4/" + "input.txt")
 	var input = string(bytes)
 	println(part1(input))
+	println(part2(input))
 
 }
 
@@ -37,6 +38,43 @@ func part1(input string) int64 {
 
 	//key: guard
 	//value: map[minute]count
+	d := parseSchedule(sArr)
+
+	maxGuardIdx := getMaxGuard(d)
+	maxGuard := d[maxGuardIdx]
+
+	//find the minute the guard is most asleep
+	maxMinute := getMaxMinute(maxGuard)
+
+	return int64(maxGuardIdx * maxMinute)
+}
+
+func part2(input string) int64 {
+	var sArr = strings.Split(input, "\n")
+	slices.Sort(sArr)
+
+	//key: guard
+	//value: map[minute]count
+	d := parseSchedule(sArr)
+
+	maxGuard := 0
+	maxFreq := 0
+	for g, v := range d {
+		for _, i := range v {
+			if i > maxFreq {
+				maxGuard = g
+				maxFreq = i
+			}
+		}
+	}
+
+	//find the minute the guard is most asleep
+	maxMinute := getMaxMinute(d[maxGuard])
+
+	return int64(maxMinute * maxGuard)
+}
+
+func parseSchedule(sArr []string) map[int]map[int]int {
 	d := make(map[int]map[int]int)
 
 	var guard = 0
@@ -73,17 +111,10 @@ func part1(input string) int64 {
 			break
 		}
 	}
-
-	maxGuardIdx := getMaxGuard(d)
-	maxGuard := d[maxGuardIdx]
-
-	//find the minute the guard is most asleep
-	maxMinute := getMaxMinuteForGuard(maxGuard)
-
-	return int64(maxGuardIdx * maxMinute)
+	return d
 }
 
-func getMaxMinuteForGuard(guard map[int]int) int {
+func getMaxMinute(guard map[int]int) int {
 	var maxMinute = 0
 	var maxCount = 0
 	for m, c := range guard {
