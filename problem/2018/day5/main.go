@@ -3,15 +3,33 @@ package main
 import (
 	"adventOfGode/common"
 	"os"
+	"strings"
 )
 
-var UpperOffset = common.AbsDiffInt(int('A'), int('a'))
+var upperOffset = common.AbsDiffInt(int('A'), int('a'))
+var alphabet = "abcdefghijklmnopqrstuvwxyz"
+var alphabetGen = strings.Split(alphabet, "")
 
 func main() {
 	dir, _ := os.Getwd()
 	bytes, _ := os.ReadFile(dir + "/problem/2018/day5/" + "input.txt")
 	var input = string(bytes)
 	println(part1(input))
+	println(part2(input))
+}
+
+func part2(input string) int {
+	var m = len(input)
+	for i, _ := range alphabetGen {
+		var temp = input
+		temp = strings.ReplaceAll(temp, alphabetGen[i], "")
+		temp = strings.ReplaceAll(temp, strings.ToUpper(alphabetGen[i]), "")
+		var length = part1(temp)
+		if length < m {
+			m = length
+		}
+	}
+	return m
 }
 
 func part1(input string) int {
@@ -19,7 +37,7 @@ func part1(input string) int {
 		old := input
 		i := 1
 		for {
-			if common.AbsDiffInt(int(input[i]), int(input[i-1])) == UpperOffset {
+			if common.AbsDiffInt(int(input[i]), int(input[i-1])) == upperOffset {
 				input = input[:i-1] + input[i+1:]
 			}
 			i++
