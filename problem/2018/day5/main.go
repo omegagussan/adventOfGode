@@ -21,9 +21,7 @@ func main() {
 func part2(input string) int {
 	var m = len(input)
 	for i, _ := range alphabetGen {
-		var temp = input
-		temp = strings.ReplaceAll(temp, alphabetGen[i], "")
-		temp = strings.ReplaceAll(temp, strings.ToUpper(alphabetGen[i]), "")
+		temp := strings.NewReplacer(alphabetGen[i], "", strings.ToUpper(alphabetGen[i]), "").Replace(input)
 		var length = part1(temp)
 		if length < m {
 			m = length
