@@ -2,7 +2,6 @@ package main
 
 import (
 	"adventOfGode/common"
-	"fmt"
 	"os"
 	"strings"
 )
@@ -17,7 +16,7 @@ func main() {
 	bytes, _ := os.ReadFile(dir + "/problem/2018/day6/" + "input.txt")
 	var input = string(bytes)
 	println(part1(input))
-
+	println(part2(input))
 }
 
 func part1(input string) int64 {
@@ -33,6 +32,35 @@ func part1(input string) int64 {
 	return getLargestFiniteArea(points, isInfinite, areaByPoint)
 }
 
+func part2(input string) int64 {
+	points := parsePoints(input)
+	minX, maxX, minY, maxY := findRange(points)
+
+	//find the sum of the distances to all points
+	d := make(map[point]int)
+	for i := minX; i <= maxX; i++ {
+		for j := minY; j <= maxY; j++ {
+			p := point{i, j}
+			for _, x := range points {
+				d[p] += manhattanDistance(p, x)
+			}
+		}
+	}
+	keep := func(p common.Pair[point, int]) bool {
+		if p.Value < 10000 {
+			return true
+		}
+		return false
+	}
+	getKey := func(p common.Pair[point, int]) point {
+		return p.Key
+	}
+
+	filteredPointsWithScores := common.Filter(common.ToPairList(d), keep)
+	filteredPoints := common.Map(filteredPointsWithScores, getKey)
+	return int64(len(filteredPoints))
+}
+
 func getLargestFiniteArea(points []point, isInfinite map[point]int, areaByPoint map[point]int) int64 {
 	maxArea := 0
 	for _, p := range points {
@@ -43,8 +71,6 @@ func getLargestFiniteArea(points []point, isInfinite map[point]int, areaByPoint 
 		if areaByPoint[p] > maxArea {
 			maxArea = areaByPoint[p]
 		}
-		fmt.Println(p, areaByPoint[p])
-
 	}
 	return int64(maxArea)
 }
