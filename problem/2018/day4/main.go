@@ -1,10 +1,10 @@
 package main
 
 import (
+	"adventOfGode/common"
 	"os"
 	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 )
 
@@ -17,11 +17,6 @@ func main() {
 	println(part1(input))
 	println(part2(input))
 
-}
-
-func toInt(input string) int {
-	i, _ := strconv.ParseInt(input, 10, 64)
-	return int(i)
 }
 
 func dictSum(input map[int]int) int {
@@ -85,7 +80,7 @@ func parseSchedule(sArr []string) map[int]map[int]int {
 		//handle guard-line
 		m := numberGrab.FindAllStringSubmatch(sArr[i], -1)
 		if len(m) > 5 {
-			guard = toInt(strings.Join(m[5], ""))
+			guard = common.ToInt(strings.Join(m[5], ""))
 			i += 1
 			continue
 		}
@@ -141,5 +136,5 @@ func getMaxGuard(d map[int]map[int]int) int {
 
 func getLineValue(line string) int {
 	m := numberGrab.FindAllStringSubmatch(line, -1)
-	return toInt(strings.Join(m[4], ""))
+	return common.ToInt(strings.Join(m[4], ""))
 }
