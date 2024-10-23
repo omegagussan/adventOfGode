@@ -52,6 +52,14 @@ func Filter[T any](ts []T, fn func(T) bool) []T {
 	return result
 }
 
+func Sum(numbers []int) int {
+	result := 0
+	for i := 0; i < len(numbers); i++ {
+		result += numbers[i]
+	}
+	return result
+}
+
 // Keys get keys of a map
 func Keys[T comparable, V any](m map[T]V) []T {
 	keys := make([]T, 0, len(m))

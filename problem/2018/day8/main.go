@@ -22,41 +22,29 @@ func (n Node) getSpace() int {
 
 func main() {
 	dir, _ := os.Getwd()
-	bytes, _ := os.ReadFile(dir + "/problem/2018/day8/" + "sample.txt")
+	bytes, _ := os.ReadFile(dir + "/problem/2018/day8/" + "input.txt")
 	var input = string(bytes)
 	var sArr = strings.Split(input, " ")
 	var iArr = common.Map(sArr, func(s string) int {
 		i, _ := strconv.Atoi(s)
 		return i
 	})
-	var _, _ = parse(iArr)
+	total, _ := parse(iArr, 0)
+	println("part1:", total)
 }
 
-func parse(iArr []int) (Node, int) {
-	//parse node
-	var i = 0
-	var nrChildren = iArr[i]
-	var nrMetadata = iArr[i+1]
-	var n = Node{make([]Node, nrChildren), make([]int, nrMetadata)}
-	i += 2
-	if nrChildren == 0 {
-		n.metadata = iArr[i : i+nrMetadata]
-	} else {
-		var size = 0
-		for _ = range nrChildren {
-			var latestChild, lastIndex = parse(iArr[i+size:])
-			size += lastIndex
-			n.children = append(n.children, latestChild)
-		}
-		i += size
-		printStringArr(iArr)
-		println("nrChildren", nrChildren)
-		println("nrMetadata", nrMetadata)
-		println(i)
-		println(" ")
-		n.metadata = iArr[i : i+nrMetadata]
+func parse(data []int, total int) (int, []int) {
+	var nrChildren = data[0]
+	var nrMetadata = data[1]
+	data = data[2:]
+
+	for _ = range nrChildren {
+		total, data = parse(data, total)
 	}
-	return n, i
+	printStringArr(data[:nrMetadata])
+	total += common.Sum(data[:nrMetadata])
+
+	return total, data[nrMetadata:]
 }
 
 func printStringArr(iArr []int) {
