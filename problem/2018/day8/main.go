@@ -29,22 +29,33 @@ func main() {
 		i, _ := strconv.Atoi(s)
 		return i
 	})
-	total, _ := parse(iArr, 0)
+	total, _, part2 := parse(iArr, 0, make([]int, 0))
 	println("part1:", total)
+	println("part2:", part2)
 }
 
-func parse(data []int, total int) (int, []int) {
+func parse(data []int, total int, scores []int) (int, []int, int) {
 	var nrChildren = data[0]
 	var nrMetadata = data[1]
 	data = data[2:]
 
 	for _ = range nrChildren {
-		total, data = parse(data, total)
+		var s = 0
+		total, data, s = parse(data, total, make([]int, 0))
+		scores = append(scores, s)
 	}
-	printStringArr(data[:nrMetadata])
 	total += common.Sum(data[:nrMetadata])
 
-	return total, data[nrMetadata:]
+	if nrChildren == 0 {
+		return total, data[nrMetadata:], common.Sum(data[:nrMetadata])
+	}
+	var tmp = common.Map(data[:nrMetadata], func(i int) int {
+		if i == 0 || i > len(scores) {
+			return 0
+		}
+		return scores[i-1]
+	})
+	return total, data[nrMetadata:], common.Sum(tmp)
 }
 
 func printStringArr(iArr []int) {
