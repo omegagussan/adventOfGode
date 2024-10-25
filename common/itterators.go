@@ -1,7 +1,5 @@
 package common
 
-import "slices"
-
 func SliceTo(n int) []int {
 	var s []int
 	for i := 0; i < n; i++ {
@@ -70,10 +68,6 @@ func Sum(numbers []int) int {
 		result += numbers[i]
 	}
 	return result
-}
-
-func Append(s []int, i []int) []int {
-	return slices.Concat(s, i)
 }
 
 // Keys get keys of a map
