@@ -57,10 +57,3 @@ func parse(data []int, total int, scores []int) (int, []int, int) {
 	})
 	return total, data[nrMetadata:], common.Sum(tmp)
 }
-
-func printStringArr(iArr []int) {
-	var sArr = common.Map(iArr, func(i int) string {
-		return strconv.Itoa(i)
-	})
-	println(strings.Join(sArr, " "))
-}

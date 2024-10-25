@@ -44,6 +44,16 @@ func Map[T, V any](ts []T, fn func(T) V) []V {
 	return result
 }
 
+func MapMax[T comparable](mapz map[T]int) int {
+	m := 0
+	for _, v := range mapz {
+		if v > m {
+			m = v
+		}
+	}
+	return m
+}
+
 func Filter[T any](ts []T, fn func(T) bool) []T {
 	result := make([]T, 0)
 	for _, t := range ts {
