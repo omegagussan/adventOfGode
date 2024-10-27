@@ -17,7 +17,8 @@ func main() {
 		intVal, _ := strconv.Atoi(v)
 		intArr[i] = intVal
 	}
-	println(getSum(intArr))
+	println("part 1: ", getSum(intArr))
+	println("part 2: ", getSumPart2(intArr))
 }
 
 func getSum(arr []int) int {
@@ -32,5 +33,15 @@ func getSum(arr []int) int {
 		}
 	}
 	return sum
+}
 
+func getSumPart2(arr []int) int {
+	sum := 0
+	var half = len(arr) / 2
+	for i, v := range arr {
+		if v == arr[(i+half)%len(arr)] {
+			sum += v
+		}
+	}
+	return sum
 }
