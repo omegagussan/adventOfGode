@@ -45,7 +45,7 @@ func TestMakeBoardCreatesCorrectSize(t *testing.T) {
 
 func TestFindMaxSquareReturnsCorrectValues(t *testing.T) {
 	board := makeBoard(18, 300, 300)
-	x, y, power := findMaxSquare(board)
+	x, y, power := findMaxSquare(board, 3)
 	if x != 33 || y != 45 || power != 29 {
 		t.Errorf("Expected (33, 45, 29), but got (%d, %d, %d)", x, y, power)
 	}
@@ -53,8 +53,24 @@ func TestFindMaxSquareReturnsCorrectValues(t *testing.T) {
 
 func TestFindMaxSquareReturnsCorrectValues2(t *testing.T) {
 	board := makeBoard(42, 300, 300)
-	x, y, power := findMaxSquare(board)
+	x, y, power := findMaxSquare(board, 3)
 	if x != 21 || y != 61 || power != 30 {
 		t.Errorf("Expected (21, 61, 30), but got (%d, %d, %d)", x, y, power)
+	}
+}
+
+func TestFindVariableSizeMaxSquareReturnsCorrectValues(t *testing.T) {
+	board := makeBoard(18, 300, 300)
+	maxPower, maxY, maxX, maxSize := findVariableSizeMaxSquare(board)
+	if maxX != 90 || maxY != 269 || maxSize != 16 || maxPower != 113 {
+		t.Errorf("Expected (90, 269, 16, 113), but got (%d, %d, %d, %d)", maxX, maxY, maxSize, maxPower)
+	}
+}
+
+func TestFindVariableSizeMaxSquareReturnsCorrectValues2(t *testing.T) {
+	board := makeBoard(42, 300, 300)
+	maxPower, maxY, maxX, maxSize := findVariableSizeMaxSquare(board)
+	if maxX != 232 || maxY != 251 || maxSize != 12 || maxPower != 119 {
+		t.Errorf("Expected (232, 251, 12, 119), but got (%d, %d, %d, %d)", maxX, maxY, maxSize, maxPower)
 	}
 }

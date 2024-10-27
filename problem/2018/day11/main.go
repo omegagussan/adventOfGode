@@ -12,13 +12,13 @@ func makeBoard(serialNr int, xMax int, yMax int) Board {
 }
 
 // x,y,power
-func findMaxSquare(board Board) (int, int, int) {
+func findMaxSquare(board Board, size int) (int, int, int) {
 	maxPower := 0
 	maxX := 0
 	maxY := 0
-	for x := 1; x <= board.xMax-3; x++ {
-		for y := 1; y <= board.yMax-3; y++ {
-			pw := squarePower(board, x, y)
+	for x := 1; x <= board.xMax-size; x++ {
+		for y := 1; y <= board.yMax-size; y++ {
+			pw := squarePower(board, x, y, size, size)
 			if pw > maxPower {
 				maxPower = pw
 				maxX = x
@@ -29,10 +29,18 @@ func findMaxSquare(board Board) (int, int, int) {
 	return maxX, maxY, maxPower
 }
 
-func squarePower(board Board, x int, y int) int {
+func squarePower(board Board, x int, y int, xSize int, ySize int) int {
 	power := 0
-	for i := x; i < x+3; i++ {
-		for j := y; j < y+3; j++ {
+	toX := x + xSize
+	if toX > board.xMax {
+		toX = board.xMax
+	}
+	if ySize > board.yMax {
+		ySize = board.yMax
+	}
+	toY := y + ySize
+	for i := x; i < toX; i++ {
+		for j := y; j < toY; j++ {
 			power += board.board[i][j]
 		}
 	}
@@ -57,6 +65,25 @@ type Board struct {
 
 func main() {
 	board := makeBoard(9306, 300, 300)
-	x, y, power := findMaxSquare(board)
+	x, y, power := findMaxSquare(board, 3)
 	println("part1:", x, y, power)
+	maxPower, maxY, maxX, maxSize := findVariableSizeMaxSquare(board)
+	println("part2:", maxX, maxY, maxSize, maxPower)
+}
+
+func findVariableSizeMaxSquare(board Board) (int, int, int, int) {
+	maxPower := 0
+	maxY := 0
+	maxX := 0
+	maxSize := 0
+	for size := 1; size <= 300; size++ {
+		x, y, power := findMaxSquare(board, size)
+		if power > maxPower {
+			maxPower = power
+			maxSize = size
+			maxX = x
+			maxY = y
+		}
+	}
+	return maxPower, maxY, maxX, maxSize
 }
