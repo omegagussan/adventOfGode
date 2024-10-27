@@ -74,3 +74,20 @@ func TestFindVariableSizeMaxSquareReturnsCorrectValues2(t *testing.T) {
 		t.Errorf("Expected (232, 251, 12, 119), but got (%d, %d, %d, %d)", maxX, maxY, maxSize, maxPower)
 	}
 }
+
+func TestCache(t *testing.T) {
+	b := make(map[int]map[int]int)
+	b[1] = map[int]int{1: 1, 2: 2}
+	b[2] = map[int]int{1: 3, 2: 4}
+	board := Board{2, 2, b}
+	cache := make(map[PowerCacheKey]PowerKeyValue)
+	key := PowerCacheKey{1, 1, 1}
+	value := PowerKeyValue{true, 1}
+	cache[key] = value
+
+	res := squarePowerCached(board, 1, 1, 2, cache)
+	if res != 10 {
+		t.Errorf("Expected 10, but got %d", res)
+	}
+
+}
