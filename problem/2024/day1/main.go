@@ -15,10 +15,7 @@ type Lists struct {
 }
 
 func newLists() *Lists {
-	return &Lists{
-		First:  []int{},
-		Second: []int{},
-	}
+	return &Lists{}
 }
 
 func (l *Lists) addFirst(i int) {
@@ -29,24 +26,22 @@ func (l *Lists) addSecond(i int) {
 	l.Second = append(l.Second, i)
 }
 
-func (l *Lists) sort() *Lists {
+func (l *Lists) sort() {
 	sort.Ints(l.First)
 	sort.Ints(l.Second)
-	return l
 }
 
 func (l *Lists) part1() int {
 	l.sort()
-	var total int
+	total := 0
 	for i, v := range l.First {
-		abs := math.Abs(float64(v - l.Second[i]))
-		total += int(abs)
+		total += int(math.Abs(float64(v - l.Second[i])))
 	}
 	return total
 }
 
 func (l *Lists) part2() int {
-	var total int
+	total := 0
 	for _, v := range l.First {
 		total += v * l.count(v)
 	}
@@ -65,7 +60,7 @@ func (l *Lists) count(i int) int {
 
 func main() {
 	dir, _ := os.Getwd()
-	bytes, _ := os.ReadFile(dir + "/problem/2024/day1/" + "input.txt")
+	bytes, _ := os.ReadFile(dir + "/problem/2024/day1/input.txt")
 	input := string(bytes)
 	split := strings.Split(input, "\n")
 	fmt.Println(part1(split))
@@ -73,19 +68,17 @@ func main() {
 }
 
 func part1(split []string) int {
-	l := parseLists(split)
-	return l.part1()
+	return parseLists(split).part1()
 }
 
 func part2(split []string) int {
-	l := parseLists(split)
-	return l.part2()
+	return parseLists(split).part2()
 }
 
 func parseLists(split []string) *Lists {
-	var l = newLists()
+	l := newLists()
 	for _, s := range split {
-		nums := strings.Split(s, " ")
+		nums := strings.Fields(s)
 		first, _ := strconv.Atoi(nums[0])
 		second, _ := strconv.Atoi(nums[len(nums)-1])
 		l.addFirst(first)
@@ -93,6 +86,3 @@ func parseLists(split []string) *Lists {
 	}
 	return l
 }
-
-//54925252
-//2727176
