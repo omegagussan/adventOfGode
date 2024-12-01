@@ -1,6 +1,6 @@
 module adventOfGode
 
-go 1.22
+go 1.23
 
 require (
 	github.com/mowshon/iterium v1.0.0 // indirect
