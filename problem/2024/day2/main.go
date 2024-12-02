@@ -20,17 +20,10 @@ func main() {
 func part1(split []string) int {
 	safe := 0
 	for _, s := range split {
-		numbers := make([]int, 0)
-		vs := strings.Split(s, " ")
-		for _, v := range vs {
-			numb, _ := strconv.Atoi(v)
-			numbers = append(numbers, numb)
-		}
-		if (isStrictlyIncreasing(numbers) || isStrictlyDecreasing(numbers)) &&
-			isDiffLessThan(numbers, 3) {
+		numbers := parseNumbers(s)
+		if (isStrictlyIncreasing(numbers) || isStrictlyDecreasing(numbers)) && isDiffLessThan(numbers, 3) {
 			safe++
 		}
-
 	}
 	return safe
 }
@@ -39,28 +32,29 @@ func part2(split []string) int {
 	safe := 0
 Outer:
 	for _, s := range split {
-		numbers := make([]int, 0)
-		vs := strings.Split(s, " ")
-		for _, v := range vs {
-			numb, _ := strconv.Atoi(v)
-			numbers = append(numbers, numb)
-		}
-		if (isStrictlyIncreasing(numbers) || isStrictlyDecreasing(numbers)) &&
-			isDiffLessThan(numbers, 3) {
+		numbers := parseNumbers(s)
+		if (isStrictlyIncreasing(numbers) || isStrictlyDecreasing(numbers)) && isDiffLessThan(numbers, 3) {
 			safe++
 			continue Outer
 		}
 		for i := 0; i < len(numbers); i++ {
 			tmp := remove(numbers, i)
-			if (isStrictlyIncreasing(tmp) || isStrictlyDecreasing(tmp)) &&
-				isDiffLessThan(tmp, 3) {
+			if (isStrictlyIncreasing(tmp) || isStrictlyDecreasing(tmp)) && isDiffLessThan(tmp, 3) {
 				safe++
 				continue Outer
 			}
 		}
-
 	}
 	return safe
+}
+
+func parseNumbers(s string) []int {
+	vs := strings.Split(s, " ")
+	numbers := make([]int, len(vs))
+	for i, v := range vs {
+		numbers[i], _ = strconv.Atoi(v)
+	}
+	return numbers
 }
 
 func remove(ints []int, i int) []int {
@@ -72,8 +66,7 @@ func remove(ints []int, i int) []int {
 
 func isDiffLessThan(numbers []int, diff int) bool {
 	for i := 0; i < len(numbers)-1; i++ {
-		var abs = math.Abs(float64(numbers[i+1] - numbers[i]))
-		if abs > float64(diff) {
+		if math.Abs(float64(numbers[i+1]-numbers[i])) > float64(diff) {
 			return false
 		}
 	}
@@ -82,7 +75,7 @@ func isDiffLessThan(numbers []int, diff int) bool {
 
 func isStrictlyIncreasing(numbers []int) bool {
 	for i := 0; i < len(numbers)-1; i++ {
-		if !(numbers[i] < numbers[i+1]) {
+		if numbers[i] >= numbers[i+1] {
 			return false
 		}
 	}
@@ -91,7 +84,7 @@ func isStrictlyIncreasing(numbers []int) bool {
 
 func isStrictlyDecreasing(numbers []int) bool {
 	for i := 0; i < len(numbers)-1; i++ {
-		if !(numbers[i] > numbers[i+1]) {
+		if numbers[i] <= numbers[i+1] {
 			return false
 		}
 	}
