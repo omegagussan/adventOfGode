@@ -14,6 +14,7 @@ func main() {
 	input := string(bytes)
 	split := strings.Split(input, "\n")
 	fmt.Println(part1(split))
+	fmt.Println(part2(split))
 }
 
 func part1(split []string) int {
@@ -32,6 +33,41 @@ func part1(split []string) int {
 
 	}
 	return safe
+}
+
+func part2(split []string) int {
+	safe := 0
+Outer:
+	for _, s := range split {
+		numbers := make([]int, 0)
+		vs := strings.Split(s, " ")
+		for _, v := range vs {
+			numb, _ := strconv.Atoi(v)
+			numbers = append(numbers, numb)
+		}
+		if (isStrictlyIncreasing(numbers) || isStrictlyDecreasing(numbers)) &&
+			isDiffLessThan(numbers, 3) {
+			safe++
+			continue Outer
+		}
+		for i := 0; i < len(numbers); i++ {
+			tmp := remove(numbers, i)
+			if (isStrictlyIncreasing(tmp) || isStrictlyDecreasing(tmp)) &&
+				isDiffLessThan(tmp, 3) {
+				safe++
+				continue Outer
+			}
+		}
+
+	}
+	return safe
+}
+
+func remove(ints []int, i int) []int {
+	tmp := make([]int, len(ints)-1)
+	copy(tmp, ints[:i])
+	copy(tmp[i:], ints[i+1:])
+	return tmp
 }
 
 func isDiffLessThan(numbers []int, diff int) bool {
