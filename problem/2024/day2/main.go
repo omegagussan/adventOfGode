@@ -58,10 +58,8 @@ func parseNumbers(s string) []int {
 }
 
 func remove(ints []int, i int) []int {
-	tmp := make([]int, len(ints)-1)
-	copy(tmp, ints[:i])
-	copy(tmp[i:], ints[i+1:])
-	return tmp
+	slice := append([]int(nil), ints...)
+	return append(slice[:i], ints[i+1:]...)
 }
 
 func isDiffLessThan(numbers []int, diff int) bool {
