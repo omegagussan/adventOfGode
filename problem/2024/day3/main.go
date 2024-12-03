@@ -17,41 +17,33 @@ func main() {
 }
 
 func part1(input string) int {
-	r := regexp.MustCompile("mul\\((\\d+),(\\d+)\\)")
-	m := r.FindAllStringSubmatch(input, -1)
+	r := regexp.MustCompile(`mul\((\d+),(\d+)\)`)
+	matches := r.FindAllStringSubmatch(input, -1)
 	count := 0
-	for _, v := range m {
-		a, b := v[1], v[2]
-		x, _ := strconv.Atoi(a)
-		y, _ := strconv.Atoi(b)
+	for _, match := range matches {
+		x, _ := strconv.Atoi(match[1])
+		y, _ := strconv.Atoi(match[2])
 		count += x * y
 	}
 	return count
 }
 
 func part2(input string) int {
-	r := regexp.MustCompile("mul\\((\\d+),(\\d+)\\)")
-	m := r.FindAllStringSubmatch(input, -1)
-	matches := make(map[int][]string)
-	for _, v := range m {
-		//find first occurrence of mul
-		i := strings.Index(input, v[0])
-		matches[i] = v[1:]
-	}
+	matchMap := getMatchMap(input)
 
 	count := 0
-	e := true
-	for i, _ := range input {
+	execute := true
+	for i := range input {
 		if strings.HasPrefix(input[i:], "do()") {
-			e = true
+			execute = true
 		} else if strings.HasPrefix(input[i:], "don't()") {
-			e = false
+			execute = false
 		}
 
-		if e {
-			if v, ok := matches[i]; ok {
-				x, _ := strconv.Atoi(v[0])
-				y, _ := strconv.Atoi(v[1])
+		if execute {
+			if values, found := matchMap[i]; found {
+				x, _ := strconv.Atoi(values[0])
+				y, _ := strconv.Atoi(values[1])
 				count += x * y
 			}
 		}
@@ -59,4 +51,13 @@ func part2(input string) int {
 	return count
 }
 
-//88811886 (all operations are unique)
+func getMatchMap(input string) map[int][]string {
+	r := regexp.MustCompile(`mul\((\d+),(\d+)\)`)
+	matches := r.FindAllStringSubmatch(input, -1)
+	matchMap := make(map[int][]string)
+	for _, match := range matches {
+		index := strings.Index(input, match[0])
+		matchMap[index] = match[1:]
+	}
+	return matchMap
+}
