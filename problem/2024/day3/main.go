@@ -5,6 +5,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 func main() {
@@ -12,6 +13,7 @@ func main() {
 	bytes, _ := os.ReadFile(dir + "/problem/2024/day3/input.txt")
 	input := string(bytes)
 	fmt.Println(part1(input))
+	fmt.Println(part2(input))
 }
 
 func part1(input string) int {
@@ -26,3 +28,35 @@ func part1(input string) int {
 	}
 	return count
 }
+
+func part2(input string) int {
+	r := regexp.MustCompile("mul\\((\\d+),(\\d+)\\)")
+	m := r.FindAllStringSubmatch(input, -1)
+	matches := make(map[int][]string)
+	for _, v := range m {
+		//find first occurrence of mul
+		i := strings.Index(input, v[0])
+		matches[i] = v[1:]
+	}
+
+	count := 0
+	e := true
+	for i, _ := range input {
+		if strings.HasPrefix(input[i:], "do()") {
+			e = true
+		} else if strings.HasPrefix(input[i:], "don't()") {
+			e = false
+		}
+
+		if e {
+			if v, ok := matches[i]; ok {
+				x, _ := strconv.Atoi(v[0])
+				y, _ := strconv.Atoi(v[1])
+				count += x * y
+			}
+		}
+	}
+	return count
+}
+
+//88811886 (all operations are unique)
