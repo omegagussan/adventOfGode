@@ -11,7 +11,8 @@ func main() {
 	bytes, _ := os.ReadFile(dir + "/problem/2024/day4/input.txt")
 	input := string(bytes)
 	split := strings.Split(input, "\n")
-	fmt.Println(part1(split))
+	//fmt.Println(part1(split))
+	fmt.Println(part2(split))
 }
 
 func RotateClockwise(input []string) []string {
@@ -22,6 +23,42 @@ func RotateClockwise(input []string) []string {
 		}
 	}
 	return result
+}
+
+func part2(input []string) int {
+	total := 0
+	for i := range input {
+		for j := range input[0] {
+			if IsCross(input, i, j) {
+				total++
+			}
+		}
+	}
+	return total
+}
+
+func IsCross(input []string, i, j int) bool {
+	if i+2 >= len(input) || j+2 >= len(input[0]) {
+		return false
+	}
+	if input[i+1][j+1] != 'A' {
+		return false
+	}
+	diagonalString := ""
+	for x := 0; x < 3; x++ {
+		diagonalString += string(input[i+x][j+x])
+	}
+	if !(strings.Contains(diagonalString, "MAS") || strings.Contains(diagonalString, "SAM")) {
+		return false
+	}
+	otherDiagonalString := ""
+	for x := 0; x < 3; x++ {
+		otherDiagonalString += string(input[i+x][j+2-x])
+	}
+	if !(strings.Contains(otherDiagonalString, "MAS") || strings.Contains(otherDiagonalString, "SAM")) {
+		return false
+	}
+	return true
 }
 
 func part1(input []string) int {
