@@ -9,17 +9,17 @@ import (
 func main() {
 	dir, _ := os.Getwd()
 	bytes, _ := os.ReadFile(dir + "/problem/2024/day4/input.txt")
-	input := string(bytes)
-	split := strings.Split(input, "\n")
-	//fmt.Println(part1(split))
-	fmt.Println(part2(split))
+	input := strings.Split(string(bytes), "\n")
+	fmt.Println(part1(input))
+	fmt.Println(part2(input))
 }
 
 func RotateClockwise(input []string) []string {
-	result := make([]string, len(input))
-	for i := 0; i < len(input); i++ {
-		for j := 0; j < len(input); j++ {
-			result[i] += string(input[len(input)-j-1][i])
+	n := len(input)
+	result := make([]string, n)
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
+			result[i] += string(input[n-j-1][i])
 		}
 	}
 	return result
@@ -38,55 +38,28 @@ func part2(input []string) int {
 }
 
 func IsCross(input []string, i, j int) bool {
-	if i+2 >= len(input) || j+2 >= len(input[0]) {
+	if i+2 >= len(input) || j+2 >= len(input[0]) || input[i+1][j+1] != 'A' {
 		return false
 	}
-	if input[i+1][j+1] != 'A' {
-		return false
-	}
-	diagonalString := ""
-	for x := 0; x < 3; x++ {
-		diagonalString += string(input[i+x][j+x])
-	}
-	if !(strings.Contains(diagonalString, "MAS") || strings.Contains(diagonalString, "SAM")) {
-		return false
-	}
-	otherDiagonalString := ""
-	for x := 0; x < 3; x++ {
-		otherDiagonalString += string(input[i+x][j+2-x])
-	}
-	if !(strings.Contains(otherDiagonalString, "MAS") || strings.Contains(otherDiagonalString, "SAM")) {
-		return false
-	}
-	return true
+	diagonalString := string(input[i][j]) + string(input[i+1][j+1]) + string(input[i+2][j+2])
+	otherDiagonalString := string(input[i][j+2]) + string(input[i+1][j+1]) + string(input[i+2][j])
+	return (diagonalString == "MAS" || diagonalString == "SAM") && (otherDiagonalString == "MAS" || otherDiagonalString == "SAM")
 }
 
 func part1(input []string) int {
 	total := 0
-	rotated := input
 	for i := 0; i < 2; i++ {
-		for _, v := range rotated {
-			total += strings.Count(v, "XMAS")
-			total += strings.Count(v, "SAMX")
+		for _, v := range input {
+			total += strings.Count(v, "XMAS") + strings.Count(v, "SAMX")
 		}
-		rotated = RotateClockwise(input)
+		input = RotateClockwise(input)
 	}
-	println(total)
-
-	//search diagonally
 	for i := 0; i < 2; i++ {
 		for offset := 0; offset < len(input[0]); offset++ {
-			diagonalString := getDiagonalString(input, offset)
-			println(diagonalString)
-			total += strings.Count(diagonalString, "XMAS")
-			total += strings.Count(diagonalString, "SAMX")
+			total += strings.Count(getDiagonalString(input, offset), "XMAS") + strings.Count(getDiagonalString(input, offset), "SAMX")
 		}
 		for offset := 1; offset < len(input); offset++ {
-			otherDiagonalString := getOtherDiagonalString(input, offset)
-			println(otherDiagonalString)
-			total += strings.Count(otherDiagonalString, "XMAS")
-			total += strings.Count(otherDiagonalString, "SAMX")
-
+			total += strings.Count(getOtherDiagonalString(input, offset), "XMAS") + strings.Count(getOtherDiagonalString(input, offset), "SAMX")
 		}
 		input = RotateClockwise(input)
 	}
@@ -95,11 +68,7 @@ func part1(input []string) int {
 
 func getDiagonalString(src []string, offset int) string {
 	ret := ""
-	rangez := max(len(src), len(src[0]))
-	for i := 0; i < rangez; i++ {
-		if i+offset >= len(src[0]) {
-			break
-		}
+	for i := 0; i < len(src) && i+offset < len(src[0]); i++ {
 		ret += string(src[i][i+offset])
 	}
 	return ret
@@ -107,11 +76,7 @@ func getDiagonalString(src []string, offset int) string {
 
 func getOtherDiagonalString(src []string, offset int) string {
 	ret := ""
-	rangez := max(len(src), len(src[0]))
-	for i := 0; i < rangez; i++ {
-		if i+offset >= len(src) {
-			break
-		}
+	for i := 0; i < len(src) && i+offset < len(src); i++ {
 		ret += string(src[i+offset][i])
 	}
 	return ret
