@@ -13,37 +13,43 @@ func main() {
 	input := string(bytes)
 	fmt.Println(part1(input))
 	fmt.Println(part2(input))
-
-}
-
-func part2(input string) int {
-	split := strings.Split(input, "\n\n")
-	rules := strings.Split(split[0], "\n")
-	update := strings.Split(split[1], "\n")
-	r := make(map[int][]int)
-	for _, rule := range rules {
-		s := strings.Split(rule, "|")
-		key, _ := strconv.Atoi(s[0])
-		val, _ := strconv.Atoi(s[1])
-		r[key] = append(r[key], val)
-	}
-
-	total := 0
-	for _, v := range update {
-		valuesForUpdate := getValuesToUpdate(v)
-		if !isCorrectlySortedUpdates(valuesForUpdate, r) {
-			sorted := sortUpdates(valuesForUpdate, r)
-			total += getValueByMiddleIndex(sorted)
-		}
-	}
-
-	return total
 }
 
 func part1(input string) int {
-	split := strings.Split(input, "\n\n")
-	rules := strings.Split(split[0], "\n")
-	update := strings.Split(split[1], "\n")
+	rules, updates := parseInput(input)
+	r := parseRules(rules)
+
+	total := 0
+	for _, v := range updates {
+		values := getValues(v)
+		if isCorrectlySorted(values, r) {
+			total += getMiddleValue(values)
+		}
+	}
+	return total
+}
+
+func part2(input string) int {
+	rules, updates := parseInput(input)
+	r := parseRules(rules)
+
+	total := 0
+	for _, v := range updates {
+		values := getValues(v)
+		if !isCorrectlySorted(values, r) {
+			values = sortValues(values, r)
+			total += getMiddleValue(values)
+		}
+	}
+	return total
+}
+
+func parseInput(input string) (rules, updates []string) {
+	parts := strings.Split(input, "\n\n")
+	return strings.Split(parts[0], "\n"), strings.Split(parts[1], "\n")
+}
+
+func parseRules(rules []string) map[int][]int {
 	r := make(map[int][]int)
 	for _, rule := range rules {
 		s := strings.Split(rule, "|")
@@ -51,76 +57,47 @@ func part1(input string) int {
 		val, _ := strconv.Atoi(s[1])
 		r[key] = append(r[key], val)
 	}
-
-	total := 0
-	for _, v := range update {
-		valuesForUpdate := getValuesToUpdate(v)
-		correctV := filterCorrectlySortedUpdates(valuesForUpdate, r)
-		if len(correctV) == len(valuesForUpdate) {
-			total += getValueByMiddleIndex(correctV)
-		}
-	}
-
-	return total
+	return r
 }
 
-func filterCorrectlySortedUpdates(valuesForUpdate []int, r map[int][]int) []int {
-	correctV := make([]int, 0)
-	for _, v := range valuesForUpdate {
-		rules := r[v]
-		if containsNone(correctV, rules) {
-			correctV = append(correctV, v)
-		}
+func getValues(v string) []int {
+	parts := strings.Split(v, ",")
+	values := make([]int, len(parts))
+	for i, p := range parts {
+		values[i], _ = strconv.Atoi(p)
 	}
-	return correctV
+	return values
 }
 
-func isCorrectlySortedUpdates(valuesForUpdate []int, r map[int][]int) bool {
-	correctV := make([]int, 0)
-	for _, v := range valuesForUpdate {
-		rules := r[v]
-		if containsNone(correctV, rules) {
-			correctV = append(correctV, v)
-		} else {
-			return false
-		}
-	}
-	return true
-}
-
-func sortUpdates(remaining []int, r map[int][]int) []int {
-	for !isCorrectlySortedUpdates(remaining, r) {
-		for i := 0; i < len(remaining); i++ {
-			for j := i + 1; j < len(remaining); j++ {
-				if contains(r[remaining[j]], remaining[i]) {
-					remaining[j], remaining[i] = remaining[i], remaining[j]
-				}
-			}
-		}
-		return remaining
-	}
-	//this should not happen
-	return []int{}
-}
-
-func getValuesToUpdate(v string) []int {
-	updateV := make([]int, 0)
-	for _, v := range strings.Split(v, ",") {
-		val, _ := strconv.Atoi(v)
-		updateV = append(updateV, val)
-	}
-	return updateV
-}
-
-func containsNone(arr []int, vals []int) bool {
-	for _, v := range arr {
-		for _, val := range vals {
-			if v == val {
+func isCorrectlySorted(values []int, r map[int][]int) bool {
+	for i, v := range values {
+		for _, rule := range r[v] {
+			if contains(values[:i], rule) {
 				return false
 			}
 		}
 	}
 	return true
+}
+
+func sortValues(values []int, r map[int][]int) []int {
+	for !isCorrectlySorted(values, r) {
+		for i := 0; i < len(values); i++ {
+			for j := i + 1; j < len(values); j++ {
+				if contains(r[values[j]], values[i]) {
+					values[i], values[j] = values[j], values[i]
+				}
+			}
+		}
+	}
+	return values
+}
+
+func getMiddleValue(values []int) int {
+	if len(values) == 0 {
+		return 0
+	}
+	return values[len(values)/2]
 }
 
 func contains(arr []int, val int) bool {
@@ -130,11 +107,4 @@ func contains(arr []int, val int) bool {
 		}
 	}
 	return false
-}
-
-func getValueByMiddleIndex(arr []int) int {
-	if len(arr) == 0 {
-		return 0
-	}
-	return arr[len(arr)/2]
 }
