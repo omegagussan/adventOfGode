@@ -33,9 +33,7 @@ func part2(input string) int {
 		fmt.Println(i)
 		valuesForUpdate := getValuesToUpdate(v)
 		correctV := optionallySortUpdates(valuesForUpdate, r)
-		if len(correctV) == len(valuesForUpdate) {
-			total += getValueByMiddleIndex(correctV)
-		}
+		total += getValueByMiddleIndex(correctV)
 	}
 
 	return total
@@ -96,72 +94,17 @@ func optionallySortUpdates(valuesForUpdate []int, r map[int][]int) []int {
 }
 
 func sortUpdates(remaining []int, r map[int][]int) []int {
-	permutations := generateAllPermutations(remaining)
-	for v := range permutations {
-		if isCorrectlySortedUpdates(v, r) {
-			return v
-		}
-	}
-	return []int{}
-}
-
-func allPermutations(arr []int) [][]int {
-	var res [][]int
-	var helper func([]int, []bool, []int)
-
-	helper = func(current []int, used []bool, arr []int) {
-		if len(current) == len(arr) {
-			temp := make([]int, len(current))
-			copy(temp, current)
-			res = append(res, temp)
-			return
-		}
-
-		for i := 0; i < len(arr); i++ {
-			if !used[i] {
-				used[i] = true
-				current = append(current, arr[i])
-				helper(current, used, arr)
-				current = current[:len(current)-1]
-				used[i] = false
-			}
-		}
-	}
-
-	used := make([]bool, len(arr))
-	helper([]int{}, used, arr)
-	return res
-}
-
-func generateAllPermutations(arr []int) <-chan []int {
-	ch := make(chan []int)
-	go func() {
-		defer close(ch)
-		var helper func([]int, []bool, []int)
-
-		helper = func(current []int, used []bool, arr []int) {
-			if len(current) == len(arr) {
-				temp := make([]int, len(current))
-				copy(temp, current)
-				ch <- temp
-				return
-			}
-
-			for i := 0; i < len(arr); i++ {
-				if !used[i] {
-					used[i] = true
-					current = append(current, arr[i])
-					helper(current, used, arr)
-					current = current[:len(current)-1]
-					used[i] = false
+	for !isCorrectlySortedUpdates(remaining, r) {
+		for i := 0; i < len(remaining); i++ {
+			for j := i + 1; j < len(remaining); j++ {
+				if contains(r[remaining[j]], remaining[i]) {
+					remaining[j], remaining[i] = remaining[i], remaining[j]
 				}
 			}
 		}
-
-		used := make([]bool, len(arr))
-		helper([]int{}, used, arr)
-	}()
-	return ch
+		return remaining
+	}
+	return []int{}
 }
 
 func getValuesToUpdate(v string) []int {
@@ -184,6 +127,18 @@ func containsNone(arr []int, vals []int) bool {
 	return true
 }
 
+func contains(arr []int, val int) bool {
+	for _, v := range arr {
+		if v == val {
+			return true
+		}
+	}
+	return false
+}
+
 func getValueByMiddleIndex(arr []int) int {
+	if len(arr) == 0 {
+		return 0
+	}
 	return arr[len(arr)/2]
 }
