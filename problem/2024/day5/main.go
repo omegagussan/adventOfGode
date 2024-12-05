@@ -11,7 +11,7 @@ func main() {
 	dir, _ := os.Getwd()
 	bytes, _ := os.ReadFile(dir + "/problem/2024/day5/input.txt")
 	input := string(bytes)
-	//fmt.Println(part1(input))
+	fmt.Println(part1(input))
 	fmt.Println(part2(input))
 
 }
@@ -29,11 +29,12 @@ func part2(input string) int {
 	}
 
 	total := 0
-	for i, v := range update {
-		fmt.Println(i)
+	for _, v := range update {
 		valuesForUpdate := getValuesToUpdate(v)
-		correctV := optionallySortUpdates(valuesForUpdate, r)
-		total += getValueByMiddleIndex(correctV)
+		if !isCorrectlySortedUpdates(valuesForUpdate, r) {
+			sorted := sortUpdates(valuesForUpdate, r)
+			total += getValueByMiddleIndex(sorted)
+		}
 	}
 
 	return total
@@ -86,12 +87,6 @@ func isCorrectlySortedUpdates(valuesForUpdate []int, r map[int][]int) bool {
 	}
 	return true
 }
-func optionallySortUpdates(valuesForUpdate []int, r map[int][]int) []int {
-	if !isCorrectlySortedUpdates(valuesForUpdate, r) {
-		return sortUpdates(valuesForUpdate, r)
-	}
-	return []int{}
-}
 
 func sortUpdates(remaining []int, r map[int][]int) []int {
 	for !isCorrectlySortedUpdates(remaining, r) {
@@ -104,6 +99,7 @@ func sortUpdates(remaining []int, r map[int][]int) []int {
 		}
 		return remaining
 	}
+	//this should not happen
 	return []int{}
 }
 
