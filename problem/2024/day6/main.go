@@ -19,7 +19,9 @@ func main() {
 	input := string(bytes)
 	m := parseMap(input)
 	guard := findStartGuard(m)
-	fmt.Println(part1(m, guard))
+	fmt.Println(part1(m, Point{guard.x, guard.y}))
+	fmt.Println(part2(m, Point{guard.x, guard.y}))
+
 }
 
 func parseMap(input string) []string {
@@ -42,10 +44,61 @@ func part1(mapz []string, guard Point) int {
 	visited[guard] = 1
 	for isInMap(mapz, guard) {
 		guard, direction = move(mapz, guard, direction)
-		visited[guard] = 1
-		fmt.Println(guard, direction)
+		visited[guard]++
+
+		//inf loop protection
+		if visited[guard] > 1000 {
+			return -1
+		}
 	}
 	return sumVisited(visited) - 1
+}
+
+func part2(mapz []string, guard Point) int {
+	oldGuard := Point{guard.x, guard.y}
+
+	direction := 0
+	visited := make(map[Point]int)
+	visited[guard] = 1
+	for isInMap(mapz, guard) {
+		guard, direction = move(mapz, guard, direction)
+		visited[guard]++
+	}
+
+	infLoops := make(map[Point]bool)
+	for v, _ := range visited {
+		for _, n := range getNeighbors(v) {
+			if !isInMap(mapz, n) {
+				continue
+			}
+			if !infLoops[n] {
+				tmpMap := copyMap(mapz)
+				insertBarrel(tmpMap, n)
+				if part1(tmpMap, Point{x: oldGuard.x, y: oldGuard.y}) == -1 {
+					infLoops[n] = true
+				}
+			}
+		}
+	}
+	return len(infLoops)
+}
+
+func copyMap(mapz []string) []string {
+	var tmpMap []string
+	for _, v := range mapz {
+		tmpMap = append(tmpMap, strings.Clone(v))
+	}
+	return tmpMap
+}
+
+func insertBarrel(tmpMap []string, n Point) {
+	tmpMap[n.y] = replaceAtIndex(tmpMap[n.y], '#', n.x)
+}
+
+func replaceAtIndex(in string, r rune, i int) string {
+	out := []rune(in)
+	out[i] = r
+	return string(out)
 }
 
 func isInMap(input []string, p Point) bool {
@@ -72,9 +125,11 @@ func addPoint(p1 Point, p2 Point) Point {
 }
 
 func sumVisited(visited map[Point]int) int {
-	sum := 0
-	for _, v := range visited {
-		sum += v
-	}
-	return sum
+	return len(visited)
 }
+
+func getNeighbors(p Point) []Point {
+	return []Point{p, {p.x, p.y - 1}, {p.x + 1, p.y}, {p.x, p.y + 1}, {p.x - 1, p.y}}
+}
+
+//1587 => high
