@@ -40,44 +40,44 @@ func findStartGuard(input []string) Point {
 
 func part1(mapz []string, guard Point) int {
 	direction := 0
-	visited := make(map[Point]int)
-	visited[guard] = 1
+	visited := make(map[Point][]int)
+	visited[guard] = append(visited[guard], direction)
 	for isInMap(mapz, guard) {
 		guard, direction = move(mapz, guard, direction)
-		visited[guard]++
+		visited[guard] = append(visited[guard], direction)
 
 		//inf loop protection
-		if visited[guard] > 1000 {
+		guardVals := visited[guard]
+		if findAnyDuplicate(guardVals) != -1 {
 			return -1
 		}
 	}
-	return sumVisited(visited) - 1
+	return len(visited) - 1
 }
 
 func part2(mapz []string, guard Point) int {
-	oldGuard := Point{guard.x, guard.y}
 
+	oldGuard := Point{guard.x, guard.y}
 	direction := 0
-	visited := make(map[Point]int)
-	visited[guard] = 1
+	visited := make(map[Point][]int)
+	visited[guard] = append(visited[guard], direction)
 	for isInMap(mapz, guard) {
 		guard, direction = move(mapz, guard, direction)
-		visited[guard]++
+		visited[guard] = append(visited[guard], direction)
 	}
 
 	infLoops := make(map[Point]bool)
 	for v, _ := range visited {
-		for _, n := range getNeighbors(v) {
-			if !isInMap(mapz, n) {
-				continue
-			}
-			if !infLoops[n] {
-				tmpMap := copyMap(mapz)
-				insertBarrel(tmpMap, n)
-				if part1(tmpMap, Point{x: oldGuard.x, y: oldGuard.y}) == -1 {
-					infLoops[n] = true
-				}
-			}
+		if !isInMap(mapz, v) {
+			continue
+		}
+		if mapz[v.y][v.x] == '#' {
+			continue
+		}
+		tmpMap := copyMap(mapz)
+		insertBarrel(tmpMap, v)
+		if part1(tmpMap, Point{x: oldGuard.x, y: oldGuard.y}) == -1 {
+			infLoops[v] = true
 		}
 	}
 	return len(infLoops)
@@ -105,12 +105,12 @@ func isInMap(input []string, p Point) bool {
 	return p.y >= 0 && p.y < len(input) && p.x >= 0 && p.x < len(input[p.y])
 }
 
-func move(input []string, p Point, d int) (Point, int) {
+func move(mapz []string, p Point, d int) (Point, int) {
 	tmp := addPoint(p, directions[d])
-	if !isInMap(input, tmp) {
+	if !isInMap(mapz, tmp) {
 		return tmp, d
 	}
-	mapVal := string(input[tmp.y][tmp.x])
+	mapVal := string(mapz[tmp.y][tmp.x])
 	if mapVal != "#" {
 		p = tmp
 		return p, d
@@ -124,12 +124,15 @@ func addPoint(p1 Point, p2 Point) Point {
 	return Point{p1.x + p2.x, p1.y + p2.y}
 }
 
-func sumVisited(visited map[Point]int) int {
-	return len(visited)
-}
-
-func getNeighbors(p Point) []Point {
-	return []Point{p, {p.x, p.y - 1}, {p.x + 1, p.y}, {p.x, p.y + 1}, {p.x - 1, p.y}}
-}
-
 //1587 => high
+
+func findAnyDuplicate(input []int) int {
+	seen := make(map[int]bool)
+	for _, v := range input {
+		if seen[v] {
+			return v
+		}
+		seen[v] = true
+	}
+	return -1
+}
