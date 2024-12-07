@@ -23,8 +23,9 @@ func main() {
 	input := string(bytes)
 	m := parseMap(input)
 	visited, _ := part1(m, findStartGuard(m))
-	fmt.Println(countUniquePose(visited) - 1)
-	fmt.Println(part2(m, findStartGuard(m), visited))
+	up := uniquePose(visited)
+	fmt.Println(len(up) - 1)
+	fmt.Println(part2(m, findStartGuard(m), up))
 }
 
 func parseMap(input string) []string {
@@ -53,18 +54,21 @@ func part1(mapz []string, guard Point) (map[State]struct{}, bool) {
 	return visitedSet, false
 }
 
-func part2(mapz []string, guard Point, visited map[State]struct{}) int {
-	infLoops := make(map[Point]bool)
+func part2(mapz []string, guard Point, visited map[Point]struct{}) int {
+	// remove guard from visited
+	delete(visited, guard)
+
+	infLoops := 0
 	for v := range visited {
-		if infLoops[v.p] || !isInMap(mapz, v.p) || mapz[v.p.y][v.p.x] == '#' {
+		if !isInMap(mapz, v) || mapz[v.y][v.x] == '#' {
 			continue
 		}
-		_, b := part1(insertBarrel(copyMap(mapz), v.p), guard)
+		_, b := part1(insertBarrel(copyMap(mapz), v), guard)
 		if b {
-			infLoops[v.p] = true
+			infLoops++
 		}
 	}
-	return len(infLoops)
+	return infLoops
 }
 
 func copyMap(mapz []string) []string {
@@ -108,10 +112,13 @@ func addPoint(p1, p2 Point) Point {
 	return Point{p1.x + p2.x, p1.y + p2.y}
 }
 
-func countUniquePose(state map[State]struct{}) int {
+func uniquePose(state map[State]struct{}) map[Point]struct{} {
 	tmp := make(map[Point]struct{})
 	for k := range state {
 		tmp[k.p] = struct{}{}
 	}
-	return len(tmp)
+	return tmp
 }
+
+//1784 too high
+//1587 too high
