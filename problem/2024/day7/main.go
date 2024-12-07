@@ -13,36 +13,31 @@ type Equation struct {
 }
 
 func (e *Equation) numberSolutions(withSecretElephant bool) int {
-	tmp := make([]int, len(e.terms))
-	copy(tmp, e.terms)
+	tmp := append([]int(nil), e.terms...)
+	sums := []int{tmp[0]}
+	tmp = tmp[1:]
+	var elem int
 
-	sums := make([]int, 0)
-	//pop
-	elem, tmp := tmp[0], tmp[1:]
-
-	sums = append(sums, elem)
 	for len(tmp) > 0 {
-		newSums := make([]int, 0)
-		//pop
-		elem, tmp = tmp[0], tmp[1:]
 
-		for v := range sums {
-			newSums = append(newSums, sums[v]+elem)
-			newSums = append(newSums, sums[v]*elem)
+		elem, tmp = tmp[0], tmp[1:]
+		newSums := []int{}
+		for _, v := range sums {
+			newSums = append(newSums, v+elem, v*elem)
 			if withSecretElephant {
-				concat, _ := strconv.Atoi(strconv.Itoa(sums[v]) + strconv.Itoa(elem))
+				concat, _ := strconv.Atoi(strconv.Itoa(v) + strconv.Itoa(elem))
 				newSums = append(newSums, concat)
 			}
 		}
 		sums = newSums
 	}
+
 	numSolutions := 0
 	for _, v := range sums {
 		if v == e.result {
 			numSolutions++
 		}
 	}
-
 	return numSolutions
 }
 
@@ -52,7 +47,6 @@ func main() {
 	input := strings.Split(string(bytes), "\n")
 	fmt.Println(part1(input))
 	fmt.Println(part2(input))
-
 }
 
 func part1(input []string) int {
@@ -79,14 +73,11 @@ func part2(input []string) int {
 
 func parseEquation(v string) Equation {
 	parts := strings.Split(v, ":")
-	target := parts[0]
-	result, _ := strconv.Atoi(target)
-	vals := strings.Split(strings.Trim(strings.Join(parts[1:], ""), " "), " ")
-	ints := make([]int, 0)
-	for _, val := range vals {
-		atoi, _ := strconv.Atoi(val)
-		ints = append(ints, atoi)
+	result, _ := strconv.Atoi(parts[0])
+	vals := strings.Fields(parts[1])
+	ints := make([]int, len(vals))
+	for i, val := range vals {
+		ints[i], _ = strconv.Atoi(val)
 	}
-	eq := Equation{ints, result}
-	return eq
+	return Equation{ints, result}
 }
