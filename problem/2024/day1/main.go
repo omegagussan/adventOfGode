@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"os"
 	"sort"
 	"strconv"
@@ -35,9 +34,16 @@ func (l *Lists) part1() int {
 	l.sort()
 	total := 0
 	for i, v := range l.First {
-		total += int(math.Abs(float64(v - l.Second[i])))
+		total += abs(v - l.Second[i])
 	}
 	return total
+}
+
+func abs(i int) int {
+	if i < 0 {
+		return -i
+	}
+	return i
 }
 
 func (l *Lists) part2() int {

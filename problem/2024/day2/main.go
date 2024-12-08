@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -62,9 +61,17 @@ func remove(ints []int, i int) []int {
 	return append(slice[:i], ints[i+1:]...)
 }
 
+func abs(i int) int {
+	if i < 0 {
+		return -i
+	}
+	return i
+
+}
+
 func isDiffLessThan(numbers []int, diff int) bool {
 	for i := 0; i < len(numbers)-1; i++ {
-		if math.Abs(float64(numbers[i+1]-numbers[i])) > float64(diff) {
+		if abs(numbers[i+1]-numbers[i]) > diff {
 			return false
 		}
 	}
