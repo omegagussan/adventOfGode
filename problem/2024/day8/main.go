@@ -39,6 +39,8 @@ func main() {
 	//fmt.Println(antennas)
 	//fmt.Println(grid)
 	fmt.Println(part1(antennas, grid))
+	fmt.Println(part2(antennas, grid))
+
 }
 
 func part1(antennas string, grid []string) int {
@@ -53,6 +55,22 @@ func part1(antennas string, grid []string) int {
 				if isInGrid(p, grid) {
 					antiNodes[p]++
 				}
+			}
+		}
+	}
+	return len(antiNodes)
+}
+
+func part2(antennas string, grid []string) int {
+	antiNodes := make(map[Point]int)
+	for _, v := range antennas {
+		points := getAntennaPoints(grid, v)
+		//fmt.Println(points)
+		allPairs := allPairs(points)
+		//fmt.Println(allPairs)
+		for _, pz := range allPairs {
+			for _, p := range findRepeatedAntiNode(pz[0], pz[1]) {
+				antiNodes[p]++
 			}
 		}
 	}
@@ -84,6 +102,33 @@ func findAntiPoints(p1 Point, p2 Point) []Point {
 	points = append(points, p3)
 	p4 := p1.Add(v.Scale(-1))
 	points = append(points, p4)
+	return points
+}
+
+func gcd(a, b int) int {
+	if b == 0 {
+		return a
+	}
+	return gcd(b, a%b)
+}
+
+func findRepeatedAntiNode(p1 Point, p2 Point) []Point {
+	points := make([]Point, 0)
+
+	v := p1.Dist(p2)
+	divisor := gcd(v.y, v.x)
+	v = v.Scale(divisor)
+	tmp := Point{p1.y, p1.x}
+	for isInGrid(tmp, grid) {
+		points = append(points, tmp)
+		tmp = tmp.Add(v)
+	}
+	v = v.Scale(-1)
+	tmp = Point{p1.y, p1.x}
+	for isInGrid(tmp, grid) {
+		points = append(points, tmp)
+		tmp = tmp.Add(v)
+	}
 	return points
 }
 
