@@ -19,20 +19,20 @@ type Vector struct {
 	x int
 }
 
-func (v Vector) Scale(f float32) Vector {
-	return Vector{int(float32(v.y) * f), int(float32(v.x) * f)}
+func (v Vector) Scale(i int) Vector {
+	return Vector{v.y * i, v.x * i}
 }
 func (p Point) Add(v Vector) Point {
 	return Point{p.y + v.y, p.x + v.x}
 }
 
 func (p Point) Dist(point Point) Vector {
-	return Vector{p.y - point.y, p.x - point.x}
+	return Vector{point.y - p.y, point.x - p.x}
 }
 
 func main() {
 	dir, _ := os.Getwd()
-	bytes, _ := os.ReadFile(dir + "/problem/2024/day8/sample.txt")
+	bytes, _ := os.ReadFile(dir + "/problem/2024/day8/input.txt")
 	input := string(bytes)
 	antennas = getAntennas(input)
 	grid = strings.Split(input, "\n")
@@ -49,14 +49,13 @@ func part1(antennas string, grid []string) int {
 		allPairs := allPairs(points)
 		//fmt.Println(allPairs)
 		for _, pz := range allPairs {
-			for _, p := range getAntiPoints(pz[0], pz[1]) {
+			for _, p := range findAntiPoints(pz[0], pz[1]) {
 				if isInGrid(p, grid) {
 					antiNodes[p]++
 				}
 			}
 		}
 	}
-	fmt.Println(antiNodes)
 	return len(antiNodes)
 }
 
@@ -77,14 +76,14 @@ func isInGrid(p Point, grid []string) bool {
 	return true
 }
 
-func getAntiPoints(p1 Point, p2 Point) []Point {
+func findAntiPoints(p1 Point, p2 Point) []Point {
 	points := make([]Point, 0)
-	v := p2.Dist(p1)
-	v = v.Scale(1 / float32(3))
-	p1a := p1.Add(v)
-	points = append(points, p1a)
-	p2a := p2.Add(v.Scale(-1))
-	points = append(points, p2a)
+	//find points twice the distance from p1 and from p2
+	v := p1.Dist(p2)
+	p3 := p1.Add(v.Scale(2))
+	points = append(points, p3)
+	p4 := p1.Add(v.Scale(-1))
+	points = append(points, p4)
 	return points
 }
 
