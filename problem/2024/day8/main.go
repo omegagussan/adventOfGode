@@ -6,22 +6,18 @@ import (
 	"strings"
 )
 
-var antennas string
-var grid []string
-
 type Point struct {
-	y int
-	x int
+	y, x int
 }
 
 type Vector struct {
-	y int
-	x int
+	y, x int
 }
 
 func (v Vector) Scale(i int) Vector {
 	return Vector{v.y * i, v.x * i}
 }
+
 func (p Point) Add(v Vector) Point {
 	return Point{p.y + v.y, p.x + v.x}
 }
@@ -34,23 +30,17 @@ func main() {
 	dir, _ := os.Getwd()
 	bytes, _ := os.ReadFile(dir + "/problem/2024/day8/input.txt")
 	input := string(bytes)
-	antennas = getAntennas(input)
-	grid = strings.Split(input, "\n")
-	//fmt.Println(antennas)
-	//fmt.Println(grid)
+	antennas := getAntennas(input)
+	grid := strings.Split(input, "\n")
 	fmt.Println(part1(antennas, grid))
 	fmt.Println(part2(antennas, grid))
-
 }
 
 func part1(antennas string, grid []string) int {
 	antiNodes := make(map[Point]int)
 	for _, v := range antennas {
 		points := getAntennaPoints(grid, v)
-		//fmt.Println(points)
-		allPairs := allPairs(points)
-		//fmt.Println(allPairs)
-		for _, pz := range allPairs {
+		for _, pz := range allPairs(points) {
 			for _, p := range findAntiPoints(pz[0], pz[1]) {
 				if isInGrid(p, grid) {
 					antiNodes[p]++
@@ -65,11 +55,8 @@ func part2(antennas string, grid []string) int {
 	antiNodes := make(map[Point]int)
 	for _, v := range antennas {
 		points := getAntennaPoints(grid, v)
-		//fmt.Println(points)
-		allPairs := allPairs(points)
-		//fmt.Println(allPairs)
-		for _, pz := range allPairs {
-			for _, p := range findRepeatedAntiNode(pz[0], pz[1]) {
+		for _, pz := range allPairs(points) {
+			for _, p := range findRepeatedAntiNode(pz[0], pz[1], grid) {
 				antiNodes[p]++
 			}
 		}
@@ -78,7 +65,7 @@ func part2(antennas string, grid []string) int {
 }
 
 func allPairs(points []Point) [][]Point {
-	pairs := make([][]Point, 0)
+	var pairs [][]Point
 	for i := 0; i < len(points); i++ {
 		for j := i + 1; j < len(points); j++ {
 			pairs = append(pairs, []Point{points[i], points[j]})
@@ -88,21 +75,12 @@ func allPairs(points []Point) [][]Point {
 }
 
 func isInGrid(p Point, grid []string) bool {
-	if p.y < 0 || p.y >= len(grid) || p.x < 0 || p.x >= len(grid[0]) {
-		return false
-	}
-	return true
+	return p.y >= 0 && p.y < len(grid) && p.x >= 0 && p.x < len(grid[0])
 }
 
-func findAntiPoints(p1 Point, p2 Point) []Point {
-	points := make([]Point, 0)
-	//find points twice the distance from p1 and from p2
+func findAntiPoints(p1, p2 Point) []Point {
 	v := p1.Dist(p2)
-	p3 := p1.Add(v.Scale(2))
-	points = append(points, p3)
-	p4 := p1.Add(v.Scale(-1))
-	points = append(points, p4)
-	return points
+	return []Point{p1.Add(v.Scale(2)), p1.Add(v.Scale(-1))}
 }
 
 func gcd(a, b int) int {
@@ -112,31 +90,25 @@ func gcd(a, b int) int {
 	return gcd(b, a%b)
 }
 
-func findRepeatedAntiNode(p1 Point, p2 Point) []Point {
-	points := make([]Point, 0)
-
+func findRepeatedAntiNode(p1, p2 Point, grid []string) []Point {
+	var points []Point
 	v := p1.Dist(p2)
 	divisor := gcd(v.y, v.x)
 	v = v.Scale(divisor)
-	tmp := Point{p1.y, p1.x}
-	for isInGrid(tmp, grid) {
+	for tmp := p1; isInGrid(tmp, grid); tmp = tmp.Add(v) {
 		points = append(points, tmp)
-		tmp = tmp.Add(v)
 	}
-	v = v.Scale(-1)
-	tmp = Point{p1.y, p1.x}
-	for isInGrid(tmp, grid) {
+	for tmp := p1; isInGrid(tmp, grid); tmp = tmp.Add(v.Scale(-1)) {
 		points = append(points, tmp)
-		tmp = tmp.Add(v)
 	}
 	return points
 }
 
 func getAntennaPoints(grid []string, v int32) []Point {
-	points := make([]Point, 0)
-	for i := 0; i < len(grid); i++ {
-		for j := 0; j < len(grid[i]); j++ {
-			if string(grid[i][j]) == string(v) {
+	var points []Point
+	for i := range grid {
+		for j := range grid[i] {
+			if grid[i][j] == byte(v) {
 				points = append(points, Point{i, j})
 			}
 		}
@@ -147,21 +119,9 @@ func getAntennaPoints(grid []string, v int32) []Point {
 func getAntennas(input string) string {
 	uniqueChars := ""
 	for _, c := range input {
-		if !contains(uniqueChars, c) {
+		if !strings.ContainsRune(uniqueChars, c) && c != '\n' && c != '.' {
 			uniqueChars += string(c)
 		}
 	}
-	tmp := uniqueChars
-	tmp = strings.Replace(tmp, "\n", "", -1)
-	tmp = strings.Replace(tmp, ".", "", -1)
-	return tmp
-}
-
-func contains(s string, c rune) bool {
-	for _, char := range s {
-		if char == c {
-			return true
-		}
-	}
-	return false
+	return uniqueChars
 }
