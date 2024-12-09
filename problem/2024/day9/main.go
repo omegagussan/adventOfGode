@@ -67,12 +67,13 @@ func Fragment(entries []Entry) []int {
 		lookup[e.ID] = e
 	}
 
-	cursor, currentId := getFirstId(memory)
-	for currentId > -1 {
+	initValue := memory[len(memory)-1]
+	for currentId := initValue; currentId > -1; currentId-- {
+		cursor := getCursorFromID(memory, currentId)
 		for i := 0; i < len(memory); i++ {
 			if memory[i] == -1 {
 				forward := getForwardRangeBound(i, memory)
-				if forward >= cursor {
+				if !(forward < cursor) {
 					break
 				}
 				sourceBlock := lookup[memory[cursor]].BlockFiles
@@ -81,13 +82,10 @@ func Fragment(entries []Entry) []int {
 					for x := 0; x < sourceBlock; x++ {
 						Swap(memory, cursor+x, i+x)
 					}
-					currentId--
-					cursor = getCursorFromID(memory, currentId)
+					break
 				}
 			}
 		}
-		currentId--
-		cursor = getCursorFromID(memory, currentId)
 	}
 	return memory
 }
@@ -101,15 +99,6 @@ func getForwardRangeBound(i int, memory []int) int {
 		}
 	}
 	return forward
-}
-
-func getFirstId(memory []int) (int, int) {
-	cursor := len(memory) - 1
-	for memory[cursor] == memory[len(memory)-1] {
-		cursor--
-	}
-	cursor++
-	return cursor, memory[cursor]
 }
 
 func getCursorFromID(memory []int, ID int) int {
@@ -150,18 +139,16 @@ func parseInput(input string) []Entry {
 	ID := 0
 	for len(input) > 0 {
 		bf, _ := strconv.Atoi(string(input[0]))
-		fs := 0
-		if len(input) > 1 {
-			fs, _ = strconv.Atoi(string(input[1]))
+		if len(input) < 2 {
+			P := Entry{ID, bf, 0}
+			state = append(state, P)
+			break
 		}
+		fs, _ := strconv.Atoi(string(input[1]))
 		P := Entry{ID, bf, fs}
 		state = append(state, P)
 		ID++
-		if len(input) > 1 {
-			input = input[2:]
-		} else {
-			input = ""
-		}
+		input = input[2:]
 	}
 	return state
 }
@@ -169,3 +156,4 @@ func parseInput(input string) []Entry {
 //7461441379032
 //8060478710966 high
 //8057088531185 high
+//6476642800819 just wrong!
