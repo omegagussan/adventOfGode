@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestPart1ParseWithValidInput(t *testing.T) {
+func TestParseWithValidInput(t *testing.T) {
 	input := "12345"
 	expected := []Entry{
 		{ID: 0, BlockFiles: 1, FreeSpace: 2},
@@ -53,6 +53,36 @@ func TestPart2WithValidInput(t *testing.T) {
 	result := part2("2333133121414131402")
 	if result != expected {
 		t.Fatalf("expected %d, got %d", expected, result)
+	}
+}
+
+func TestPart2WithOtherInput(t *testing.T) {
+	expected := 132
+	result := part2("12345")
+	if result != expected {
+		t.Fatalf("expected %d, got %d", expected, result)
+	}
+}
+
+func TestPart2WithYetOtherInput(t *testing.T) {
+	expected := 16
+	result := part2("14113")
+	if result != expected {
+		t.Fatalf("expected %d, got %d", expected, result)
+	}
+}
+
+func TestPart2FragmentWithOtherInput(t *testing.T) {
+	input := parseInput("14113")
+	expected := []int{0, 2, 2, 2, 1, -1, -1, -1, -1, -1}
+	result := Fragment(input)
+	if len(result) != len(expected) {
+		t.Fatalf("expected %d parts, got %d", len(expected), len(result))
+	}
+	for i, part := range result {
+		if part != expected[i] {
+			t.Errorf("expected part %v, got %v on index %v", expected[i], part, i)
+		}
 	}
 }
 

@@ -73,7 +73,7 @@ func Fragment(entries []Entry) []int {
 		for i := 0; i < len(memory); i++ {
 			if memory[i] == -1 {
 				forward := getForwardRangeBound(i, memory)
-				if !(forward < cursor) {
+				if forward > cursor {
 					break
 				}
 				sourceBlock := lookup[memory[cursor]].BlockFiles
@@ -130,8 +130,8 @@ func part1(input string) int {
 
 func part2(input string) int {
 	state := parseInput(input)
-	compressed := Fragment(state)
-	return CheckSum(compressed)
+	fragmented := Fragment(state)
+	return CheckSum(fragmented)
 }
 
 func parseInput(input string) []Entry {
@@ -157,3 +157,4 @@ func parseInput(input string) []Entry {
 //8060478710966 high
 //8057088531185 high
 //6476642800819 just wrong!
+//6476642796832
