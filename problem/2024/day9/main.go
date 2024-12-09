@@ -71,8 +71,8 @@ func Fragment(parts []Part) []int {
 		lookup[p.ID] = p
 	}
 
-	cursor := getHeadOfBlock(memory, len(memory)-1)
-	for cursor > 0 {
+	cursor, currentId := getFirstId(memory)
+	for currentId > -1 {
 	forwards:
 		for i := 0; i < len(memory); i++ {
 			if memory[i] == -1 {
@@ -90,33 +90,53 @@ func Fragment(parts []Part) []int {
 					for x := range lookup[memory[cursor]].BlockSize() {
 						Swap(memory, cursor+x, i+x)
 					}
-					cursor = getHeadOfBlock(memory, cursor)
+					currentId--
+					cursor = getCursorFromID(memory, currentId)
 				}
 			}
 		}
-		cursor--
-		cursor = getHeadOfBlock(memory, cursor)
+		currentId--
+		cursor = getCursorFromID(memory, currentId)
 	}
 	return memory
 }
 
-func getHeadOfBlock(memory []int, cursor int) int {
-	for memory[cursor] == -1 {
-		cursor--
-		if cursor <= 0 {
-			return cursor
-		}
-	}
-	// this should get us to the front of the block
+func getFirstId(memory []int) (int, int) {
+	cursor := len(memory) - 1
 	old := memory[cursor]
 	for memory[cursor] == old {
 		cursor--
+	}
+	cursor++
+	currentId := memory[cursor]
+	return cursor, currentId
+}
+
+func getHeadOfNextBlock(memory []int, cursor int, currentID int) (int, int) {
+	for memory[cursor] != currentID-1 {
+		cursor--
 		if cursor <= 0 {
-			return cursor
+			return cursor, currentID - 1
+		}
+	}
+	currentID = memory[cursor]
+	for memory[cursor] == currentID {
+		cursor--
+		if cursor <= 0 {
+			return cursor, currentID
 		}
 	}
 	cursor++
-	return cursor
+	return cursor, currentID
+}
+
+func getCursorFromID(memory []int, ID int) int {
+	for i, v := range memory {
+		if v == ID {
+			return i
+		}
+	}
+	return -1
 }
 
 func Swap(parts []int, a, b int) []int {
@@ -164,3 +184,4 @@ func parseInput(input string) []Part {
 }
 
 //7461441379032
+//8060478710966 high
