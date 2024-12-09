@@ -6,7 +6,7 @@ import (
 
 func TestPart1ParseWithValidInput(t *testing.T) {
 	input := "12345"
-	expected := []Part{
+	expected := []Entry{
 		{ID: 0, BlockFiles: 1, FreeSpace: 2},
 		{ID: 1, BlockFiles: 3, FreeSpace: 4},
 		{ID: 2, BlockFiles: 5, FreeSpace: 0},
@@ -23,7 +23,7 @@ func TestPart1ParseWithValidInput(t *testing.T) {
 }
 
 func TestPart1CompressWithValidInput(t *testing.T) {
-	input := []Part{
+	input := []Entry{
 		{ID: 0, BlockFiles: 1, FreeSpace: 2},
 		{ID: 1, BlockFiles: 3, FreeSpace: 4},
 		{ID: 2, BlockFiles: 5, FreeSpace: 0},

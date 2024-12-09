@@ -6,21 +6,21 @@ import (
 	"strconv"
 )
 
-type Part struct {
+type Entry struct {
 	ID         int
 	BlockFiles int
 	FreeSpace  int
 }
 
-func (p Part) Size() int {
+func (p Entry) Size() int {
 	return p.BlockFiles + p.FreeSpace
 }
 
-func (p Part) BlockSize() int {
+func (p Entry) BlockSize() int {
 	return p.BlockFiles
 }
 
-func (p Part) Dump() []int {
+func (p Entry) Dump() []int {
 	list := make([]int, p.Size())
 	for i := range p.Size() {
 		if i < p.BlockFiles {
@@ -42,7 +42,7 @@ func CheckSum(memory []int) int {
 	return sum
 }
 
-func Compress(parts []Part) []int {
+func Compress(parts []Entry) []int {
 	memory := make([]int, 0)
 	for _, p := range parts {
 		memory = append(memory, p.Dump()...)
@@ -62,32 +62,27 @@ func Compress(parts []Part) []int {
 	return memory
 }
 
-func Fragment(parts []Part) []int {
+func Fragment(parts []Entry) []int {
 	memory := make([]int, 0)
-	lookup := make(map[int]Part)
+	lookup := make(map[int]Entry)
 
 	for _, p := range parts {
 		memory = append(memory, p.Dump()...)
 		lookup[p.ID] = p
 	}
 
-	cursor, currentId := getFirstId(memory)
+	cursor, currentId := setup(memory, lookup)
 	for currentId > -1 {
-	forwards:
 		for i := 0; i < len(memory); i++ {
 			if memory[i] == -1 {
-				forward := i
-				for memory[forward] == -1 {
-					forward++
-					if forward > cursor {
-						break forwards
-					}
-				}
-				if forward > cursor {
+				forward := getForwardRangeBound(i, memory)
+				if !(forward < cursor) {
 					break
 				}
-				if lookup[memory[cursor]].BlockSize() <= forward-i {
-					for x := range lookup[memory[cursor]].BlockSize() {
+				sourceBlock := lookup[memory[cursor]].BlockSize()
+				targetBlockSize := forward - i
+				if sourceBlock <= targetBlockSize {
+					for x := range sourceBlock {
 						Swap(memory, cursor+x, i+x)
 					}
 					currentId--
@@ -101,33 +96,32 @@ func Fragment(parts []Part) []int {
 	return memory
 }
 
-func getFirstId(memory []int) (int, int) {
-	cursor := len(memory) - 1
-	old := memory[cursor]
-	for memory[cursor] == old {
-		cursor--
+func getForwardRangeBound(i int, memory []int) int {
+	forward := i
+	for memory[forward] == -1 {
+		forward++
+		if forward > len(memory)-1 {
+			return len(memory) - 1
+
+		}
 	}
-	cursor++
-	currentId := memory[cursor]
-	return cursor, currentId
+	return forward
 }
 
-func getHeadOfNextBlock(memory []int, cursor int, currentID int) (int, int) {
-	for memory[cursor] != currentID-1 {
-		cursor--
-		if cursor <= 0 {
-			return cursor, currentID - 1
+func setup(memory []int, lookup map[int]Entry) (int, int) {
+	maxx := 0
+	for _, v := range lookup {
+		if v.ID > maxx {
+			maxx = v.ID
 		}
 	}
-	currentID = memory[cursor]
-	for memory[cursor] == currentID {
-		cursor--
-		if cursor <= 0 {
-			return cursor, currentID
+	//First occurrence
+	for i, v := range memory {
+		if v == maxx {
+			return i, maxx
 		}
 	}
-	cursor++
-	return cursor, currentID
+	return -1, maxx
 }
 
 func getCursorFromID(memory []int, ID int) int {
@@ -164,18 +158,18 @@ func part2(input string) int {
 	return CheckSum(compressed)
 }
 
-func parseInput(input string) []Part {
-	state := make([]Part, 0)
+func parseInput(input string) []Entry {
+	state := make([]Entry, 0)
 	ID := 0
 	for len(input) > 0 {
 		bf, _ := strconv.Atoi(string(input[0]))
 		if len(input) == 1 {
-			P := Part{ID, bf, 0}
+			P := Entry{ID, bf, 0}
 			state = append(state, P)
 			break
 		}
 		fs, _ := strconv.Atoi(string(input[1]))
-		P := Part{ID, bf, fs}
+		P := Entry{ID, bf, fs}
 		state = append(state, P)
 		ID++
 		input = input[2:]
@@ -185,3 +179,4 @@ func parseInput(input string) []Part {
 
 //7461441379032
 //8060478710966 high
+//8057088531185 high
