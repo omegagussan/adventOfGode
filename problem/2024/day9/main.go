@@ -16,6 +16,10 @@ func (p Part) Size() int {
 	return p.BlockFiles + p.FreeSpace
 }
 
+func (p Part) BlockSize() int {
+	return p.BlockFiles
+}
+
 func (p Part) Dump() []int {
 	list := make([]int, p.Size())
 	for i := range p.Size() {
@@ -58,6 +62,51 @@ func Compress(parts []Part) []int {
 	return memory
 }
 
+func Fragment(parts []Part) []int {
+	memory := make([]int, 0)
+	lookup := make(map[int]Part)
+
+	for _, p := range parts {
+		memory = append(memory, p.Dump()...)
+		lookup[p.ID] = p
+	}
+
+	for i := 0; i < len(memory); i++ {
+		cursor := len(memory) - 1
+		if memory[i] == -1 {
+			forward := i
+			for memory[forward] == -1 {
+				forward++
+			}
+
+			for cursor > forward {
+				cursor = getHeadOfBlock(memory, cursor)
+				if lookup[memory[cursor]].BlockSize() <= forward-i {
+					for x := range lookup[memory[cursor]].Size() {
+						Swap(memory, cursor+x, i+x)
+					}
+					break
+				}
+				cursor--
+			}
+		}
+	}
+	return memory
+}
+
+func getHeadOfBlock(memory []int, cursor int) int {
+	for memory[cursor] == -1 {
+		cursor--
+	}
+	// this should get us to the front of the block
+	old := memory[cursor]
+	for memory[cursor] == old {
+		cursor--
+	}
+	cursor++
+	return cursor
+}
+
 func Swap(parts []int, a, b int) []int {
 	parts[a], parts[b] = parts[b], parts[a]
 	return parts
@@ -68,11 +117,18 @@ func main() {
 	bytes, _ := os.ReadFile(dir + "/problem/2024/day9/input.txt")
 	input := string(bytes)
 	fmt.Println(part1(input))
+	fmt.Println(part2(input))
 }
 
 func part1(input string) int {
 	state := parseInput(input)
 	compressed := Compress(state)
+	return CheckSum(compressed)
+}
+
+func part2(input string) int {
+	state := parseInput(input)
+	compressed := Fragment(state)
 	return CheckSum(compressed)
 }
 
