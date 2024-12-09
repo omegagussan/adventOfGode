@@ -67,8 +67,7 @@ func Fragment(entries []Entry) []int {
 		lookup[e.ID] = e
 	}
 
-	initValue := memory[len(memory)-1]
-	for currentId := initValue; currentId > -1; currentId-- {
+	for currentId := memory[len(memory)-1]; currentId > -1; currentId-- {
 		cursor := getCursorFromID(memory, currentId)
 		for i := 0; i < len(memory); i++ {
 			if memory[i] == -1 {
@@ -91,14 +90,12 @@ func Fragment(entries []Entry) []int {
 }
 
 func getForwardRangeBound(i int, memory []int) int {
-	forward := i
-	for memory[forward] == -1 {
-		forward++
-		if forward >= len(memory) {
-			return len(memory) - 1
+	for forward := i; forward < len(memory); forward++ {
+		if memory[forward] != -1 {
+			return forward
 		}
 	}
-	return forward
+	return len(memory) - 1
 }
 
 func getCursorFromID(memory []int, ID int) int {
@@ -124,14 +121,12 @@ func main() {
 
 func part1(input string) int {
 	state := parseInput(input)
-	compressed := Compress(state)
-	return CheckSum(compressed)
+	return CheckSum(Compress(state))
 }
 
 func part2(input string) int {
 	state := parseInput(input)
-	fragmented := Fragment(state)
-	return CheckSum(fragmented)
+	return CheckSum(Fragment(state))
 }
 
 func parseInput(input string) []Entry {
@@ -152,9 +147,3 @@ func parseInput(input string) []Entry {
 	}
 	return state
 }
-
-//7461441379032
-//8060478710966 high
-//8057088531185 high
-//6476642800819 just wrong!
-//6476642796832
