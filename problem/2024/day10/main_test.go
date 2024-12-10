@@ -43,3 +43,13 @@ func TestPart1Full(t *testing.T) {
 		t.Fatalf("expected %d, got %d", expected, result)
 	}
 }
+
+func TestPart2Full(t *testing.T) {
+	input := "89010123\n78121874\n87430965\n96549874\n45678903\n32019012\n01329801\n10456732"
+	inputTopo := strings.Split(input, "\n")
+	expected := 81
+	result := part2(inputTopo)
+	if result != expected {
+		t.Fatalf("expected %d, got %d", expected, result)
+	}
+}

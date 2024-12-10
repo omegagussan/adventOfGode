@@ -33,6 +33,7 @@ func main() {
 	input := string(bytes)
 	topo := strings.Split(input, "\n")
 	fmt.Println(part1(topo))
+	fmt.Println(part2(topo))
 }
 
 func contains(arr []Point, elem Point) bool {
@@ -79,6 +80,43 @@ func part1(topo []string) int {
 			}
 		}
 		total += len(seen)
+	}
+	return total
+}
+
+func part2(topo []string) int {
+	starts := make([]Point, 0)
+	for y, line := range topo {
+		for x, char := range line {
+			if char == '0' {
+				p := Point{y, x, 0}
+				starts = append(starts, p)
+			}
+		}
+	}
+
+	total := 0
+	for _, start := range starts {
+		heads := []Point{start}
+		seen := 0
+		for len(heads) > 0 {
+			curr := heads[0]
+			heads = heads[1:]
+			nextVal := strconv.Itoa(curr.val + 1)
+			for _, dir := range dirs {
+				next := curr.Add(dir)
+				if !next.isInMap(topo) {
+					continue
+				}
+				if curr.val == 8 && string(topo[next.y][next.x]) == "9" {
+					seen += 1
+				} else if string(topo[next.y][next.x]) == nextVal {
+					p := Point{next.y, next.x, curr.val + 1}
+					heads = append(heads, p)
+				}
+			}
+		}
+		total += seen
 	}
 	return total
 }
