@@ -16,6 +16,7 @@ func main() {
 	dir, _ := os.Getwd()
 	bytes, _ := os.ReadFile(dir + "/problem/2024/day11/input.txt")
 	input := string(bytes)
+	fmt.Println(driver(input, 25))
 	fmt.Println(driver(input, 75))
 }
 
@@ -51,7 +52,7 @@ func simulate(k Key, cache map[Key]int) int {
 		cache[kt] = res
 		return res
 	}
-	tenPow := getTenBaseRaisedTo(ll / 2)
+	tenPow := pow10(ll / 2)
 	firstHalfKey := Key{k.elem / tenPow, k.length - 1}
 	firstHalf := simulate(firstHalfKey, cache)
 	cache[firstHalfKey] = firstHalf
@@ -61,12 +62,11 @@ func simulate(k Key, cache map[Key]int) int {
 	return firstHalf + secondHalf
 }
 
-func getTenBaseRaisedTo(length int) int {
+func pow10(exp int) int {
 	result := 1
-	for i := 0; i < length; i++ {
+	for i := 0; i < exp; i++ {
 		result *= 10
 	}
-
 	return result
 }
 
@@ -82,21 +82,11 @@ func intLength(i int) int {
 	return count
 }
 
-// 0 <= index <= len(a)
-func insert(a []int, index int, value int) []int {
-	if len(a) == index { // nil or empty slice or after last element
-		return append(a, value)
-	}
-	a = append(a[:index+1], a[index:]...) // index < len(a)
-	a[index] = value
-	return a
-}
-
 func parseInput(input string) []int {
-	state := make([]int, 0)
-	for _, s := range strings.Split(input, " ") {
-		i, _ := strconv.Atoi(s)
-		state = append(state, i)
+	parts := strings.Split(input, " ")
+	state := make([]int, len(parts))
+	for i, s := range parts {
+		state[i], _ = strconv.Atoi(s)
 	}
 	return state
 }
