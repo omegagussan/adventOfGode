@@ -25,6 +25,7 @@ func driver(input string, length int) int {
 }
 
 func simulate(state []int) []int {
+	pow10Cache := make(map[int]int)
 	for i := 0; i < len(state); i++ {
 		v := state[i]
 		length := intLength(v)
@@ -32,8 +33,8 @@ func simulate(state []int) []int {
 			state[i] = 1
 		} else if length%2 == 0 {
 			l2 := length / 2
-			state[i] = state[i] / getTenBaseRaisedTo(l2)
-			state = insert(state, i+1, state[i]%getTenBaseRaisedTo(l2))
+			state = insert(state, i+1, state[i]%getTenBaseRaisedTo(l2, pow10Cache))
+			state[i] = state[i] / getTenBaseRaisedTo(l2, pow10Cache)
 			i++
 		} else {
 			state[i] = v * 2024
@@ -42,11 +43,17 @@ func simulate(state []int) []int {
 	return state
 }
 
-func getTenBaseRaisedTo(length int) int {
+func getTenBaseRaisedTo(length int, pow10Cache map[int]int) int {
+	if val, exists := pow10Cache[length]; exists {
+		return val
+	}
+
 	result := 1
 	for i := 0; i < length; i++ {
 		result *= 10
 	}
+
+	pow10Cache[length] = result
 	return result
 }
 
