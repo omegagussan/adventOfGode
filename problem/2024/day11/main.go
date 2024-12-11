@@ -11,12 +11,14 @@ func main() {
 	dir, _ := os.Getwd()
 	bytes, _ := os.ReadFile(dir + "/problem/2024/day11/input.txt")
 	input := string(bytes)
-	fmt.Println(part1(input))
+	//fmt.Println(driver(input, 25))
+	fmt.Println(driver(input, 75))
 }
 
-func part1(input string) int {
+func driver(input string, length int) int {
 	state := parseInput(input)
-	for i := 0; i < 25; i++ {
+	for i := 0; i < length; i++ {
+		fmt.Println(i)
 		state = simulate(state)
 	}
 	return len(state)
@@ -25,20 +27,39 @@ func part1(input string) int {
 func simulate(state []int) []int {
 	for i := 0; i < len(state); i++ {
 		v := state[i]
-		stringV := strconv.Itoa(v)
+		length := intLength(v)
 		if v == 0 {
 			state[i] = 1
-		} else if len(stringV)%2 == 0 {
-			firstHalf, _ := strconv.Atoi(stringV[:len(stringV)/2])
-			SecondHalf, _ := strconv.Atoi(stringV[len(stringV)/2:])
-			state[i] = firstHalf
-			state = insert(state, i+1, SecondHalf)
+		} else if length%2 == 0 {
+			l2 := length / 2
+			state[i] = state[i] / getTenBaseRaisedTo(l2)
+			state = insert(state, i+1, state[i]%getTenBaseRaisedTo(l2))
 			i++
 		} else {
 			state[i] = v * 2024
 		}
 	}
 	return state
+}
+
+func getTenBaseRaisedTo(length int) int {
+	result := 1
+	for i := 0; i < length; i++ {
+		result *= 10
+	}
+	return result
+}
+
+func intLength(i int) int {
+	if i == 0 {
+		return 1
+	}
+	count := 0
+	for i != 0 {
+		i /= 10
+		count++
+	}
+	return count
 }
 
 // 0 <= index <= len(a)
