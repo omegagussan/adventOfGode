@@ -19,6 +19,11 @@ type Point struct {
 	y, x int
 }
 
+type PointCorner struct {
+	point  Point
+	corner int
+}
+
 func (p Point) add(p2 Point) Point {
 	return Point{p.y + p2.y, p.x + p2.x}
 }
@@ -102,12 +107,15 @@ func scoreRegion(region map[Point]bool) int {
 
 func scoreRegionWithDiscount(region map[Point]bool, mapz []string) int {
 	area := len(region)
-	perimeter := 0
+	perimeter := make(map[PointCorner]bool)
 	for point, _ := range region {
-		perimeter += corners(point, region, mapz)
+		corner := corners(point, region, mapz)
+		for _, c := range corner {
+			perimeter[c] = true
+		}
 	}
 	fmt.Println(area, perimeter)
-	return area * perimeter
+	return area * len(perimeter)
 }
 
 func numberNonAdjacent(point Point, region map[Point]bool) int {
@@ -121,24 +129,74 @@ func numberNonAdjacent(point Point, region map[Point]bool) int {
 	return count
 }
 
-func corners(p Point, region map[Point]bool, mapz []string) int {
+func corners(p Point, region map[Point]bool, mapz []string) []PointCorner {
 	adjacentPoints := getAdjacentPoints(p, region)
 	if len(adjacentPoints) == 0 {
-		return 4
+		points := make([]PointCorner, 0)
+		for z := 0; z < 4; z++ {
+			points = append(points, PointCorner{p, z})
+		}
+		return points
 	} else if len(adjacentPoints) == 1 {
-		return 2
+		if adjacentPoints[0].y == p.y {
+			if adjacentPoints[0].x > p.x {
+				return []PointCorner{
+					{p, 1},
+					{p, 2},
+				}
+			} else {
+				return []PointCorner{
+					{p, 0},
+					{p, 3},
+				}
+			}
+		} else {
+			if adjacentPoints[0].y > p.y {
+				return []PointCorner{
+					{p, 2},
+					{p, 3},
+				}
+			} else {
+				return []PointCorner{
+					{p, 0},
+					{p, 1},
+				}
+			}
+		}
 	} else if len(adjacentPoints) == 2 {
 		if isLine(adjacentPoints[0], adjacentPoints[1]) {
-			return 0
+			return []PointCorner{}
 		}
 		return isSingleCorner(p, region, mapz)
-	} else if len(adjacentPoints) == 3 {
-		return isSingleCorner(p, region, mapz)
 	}
-	return 0
+
+	return isInnerCorner(p, region, mapz)
 }
 
-func isSingleCorner(point Point, region map[Point]bool, mapz []string) int {
+func isSingleCorner(point Point, region map[Point]bool, mapz []string) []PointCorner {
+	res := getSubSquaresWeights(point, region, mapz)
+	for r := range res {
+		if res[r] == 4 {
+			p := make([]PointCorner, 0)
+			p = append(p, PointCorner{point, r})
+			return p
+		}
+	}
+	return []PointCorner{}
+}
+
+func isInnerCorner(point Point, region map[Point]bool, mapz []string) []PointCorner {
+	pointConers := make([]PointCorner, 0)
+	res := getSubSquaresWeights(point, region, mapz)
+	for r := range res {
+		if res[r] == 3 {
+			pointConers = append(pointConers, PointCorner{point, r})
+		}
+	}
+	return pointConers
+}
+
+func getSubSquaresWeights(point Point, region map[Point]bool, mapz []string) []int {
 	res := make([]int, 4)
 	index := 0
 	for ix := 0; ix < 2; ix++ {
@@ -155,12 +213,7 @@ func isSingleCorner(point Point, region map[Point]bool, mapz []string) int {
 			index++
 		}
 	}
-	for r := range res {
-		if res[r] == 4 {
-			return 1
-		}
-	}
-	return 2
+	return res
 }
 
 func getAdjacentPoints(p Point, region map[Point]bool) []Point {
