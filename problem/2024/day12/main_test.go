@@ -13,6 +13,15 @@ func TestPart1Simple(t *testing.T) {
 	}
 }
 
+func TestPart2Simple(t *testing.T) {
+	input := "AAAA\nBBCD\nBBCC\nEEEC"
+	expected := 80
+	result := part2(input)
+	if result != expected {
+		t.Fatalf("expected %d, got %d", expected, result)
+	}
+}
+
 func TestPart1Small(t *testing.T) {
 	input := "OOOOO\nOXOXO\nOOOOO\nOXOXO\nOOOOO"
 	expected := 772
