@@ -45,7 +45,7 @@ Outer:
 			regions = append(regions, r)
 			continue
 		}
-		for i, _ := range regions {
+		for i := range regions {
 			region := regions[i]
 			if isAdjacentToRegion(point, region) {
 				regions[i][point] = true
@@ -60,6 +60,7 @@ Outer:
 			r := make(map[Point]bool)
 			r[point] = true
 			regions = append(regions, r)
+			newClusterThreshold = -1
 			continue
 		}
 		points = append(points, point)
