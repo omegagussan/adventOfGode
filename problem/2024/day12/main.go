@@ -7,26 +7,15 @@ import (
 )
 
 var alphabetUppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+var adjacent = []Point{{0, 1}, {0, -1}, {1, 0}, {-1, 0}}
 
-var adjacent = []Point{
-	{0, 1},
-	{0, -1},
-	{1, 0},
-	{-1, 0},
-}
-
-type Point struct {
-	y, x int
-}
-
+type Point struct{ y, x int }
 type Edge struct {
 	value     Point
 	direction int
 }
 
-func (p Point) add(p2 Point) Point {
-	return Point{p.y + p2.y, p.x + p2.x}
-}
+func (p Point) add(p2 Point) Point { return Point{p.y + p2.y, p.x + p2.x} }
 
 func main() {
 	dir, _ := os.Getwd()
@@ -37,22 +26,18 @@ func main() {
 }
 
 func parseRegions(points []Point) []map[Point]bool {
-	regions := make([]map[Point]bool, 0)
+	var regions []map[Point]bool
 	newClusterThreshold := -1
 Outer:
 	for len(points) > 0 {
-		// get the first point
 		point := points[0]
 		points = points[1:]
 
 		if len(regions) == 0 {
-			r := make(map[Point]bool)
-			r[point] = true
-			regions = append(regions, r)
+			regions = append(regions, map[Point]bool{point: true})
 			continue
 		}
-		for i := range regions {
-			region := regions[i]
+		for i, region := range regions {
 			if isAdjacentToRegion(point, region) {
 				regions[i][point] = true
 				newClusterThreshold = -1
@@ -63,9 +48,7 @@ Outer:
 		if newClusterThreshold < 0 {
 			newClusterThreshold = 10*len(points) + 10
 		} else if newClusterThreshold == 0 {
-			r := make(map[Point]bool)
-			r[point] = true
-			regions = append(regions, r)
+			regions = append(regions, map[Point]bool{point: true})
 			newClusterThreshold = -1
 			continue
 		}
@@ -77,8 +60,7 @@ Outer:
 
 func isAdjacentToRegion(point Point, region map[Point]bool) bool {
 	for _, d := range adjacent {
-		t := point.add(d)
-		if region[t] {
+		if region[point.add(d)] {
 			return true
 		}
 	}
@@ -86,30 +68,14 @@ func isAdjacentToRegion(point Point, region map[Point]bool) bool {
 }
 
 func scoreRegionWithDiscount(region map[Point]bool, mapz []string) int {
-	area := len(region)
-	edgeCount := 0
+	area, edgeCount := len(region), 0
 	edges := make(map[Edge]bool)
-	for point, _ := range region {
-		c := 0
-		c, edges = countNewEdges(point, edges, region, mapz)
+	for point := range region {
+		c, newEdges := countNewEdges(point, edges, region, mapz)
 		edgeCount += c
+		edges = newEdges
 	}
-	fmt.Println(area, edgeCount)
 	return area * edgeCount
-}
-
-func getValueByDirection(p Point, direction int) int {
-	switch direction {
-	case 0:
-		return p.x
-	case 1:
-		return p.x
-	case 2:
-		return p.y
-	case 3:
-		return p.y
-	}
-	panic("invalid direction")
 }
 
 func isInMap(p Point, mapz []string) bool {
@@ -117,17 +83,14 @@ func isInMap(p Point, mapz []string) bool {
 }
 
 func countNewEdges(p Point, edges map[Edge]bool, region map[Point]bool, mapz []string) (int, map[Edge]bool) {
-	duplicates := 0
-	before := len(edges)
+	duplicates, before := 0, len(edges)
 	for i, d := range adjacent {
 		t := p.add(d)
 		if !isInMap(t, mapz) || !region[t] {
 			e := Edge{t, i}
 			edges[e] = true
-
 			for _, d2 := range adjacent {
-				t2 := t.add(d2)
-				if edges[Edge{t2, i}] {
+				if edges[Edge{t.add(d2), i}] {
 					duplicates++
 				}
 			}
@@ -138,12 +101,10 @@ func countNewEdges(p Point, edges map[Edge]bool, region map[Point]bool, mapz []s
 
 func part1(input string) int {
 	mapz := strings.Split(input, "\n")
-
 	cost := 0
 	for _, c := range alphabetUppercase {
 		points := parsePoints(mapz, c)
-		regions := parseRegions(points)
-		for _, region := range regions {
+		for _, region := range parseRegions(points) {
 			cost += scoreRegion(region)
 		}
 	}
@@ -153,8 +114,7 @@ func part1(input string) int {
 func numberNonAdjacent(point Point, region map[Point]bool) int {
 	count := 4
 	for _, d := range adjacent {
-		t := point.add(d)
-		if region[t] {
+		if region[point.add(d)] {
 			count--
 		}
 	}
@@ -162,23 +122,19 @@ func numberNonAdjacent(point Point, region map[Point]bool) int {
 }
 
 func scoreRegion(region map[Point]bool) int {
-	area := len(region)
-	perimeter := 0
-	for point, _ := range region {
-		p := numberNonAdjacent(point, region)
-		perimeter += p
+	area, perimeter := len(region), 0
+	for point := range region {
+		perimeter += numberNonAdjacent(point, region)
 	}
 	return area * perimeter
 }
 
 func part2(input string) int {
 	mapz := strings.Split(input, "\n")
-
 	cost := 0
 	for _, c := range alphabetUppercase {
 		points := parsePoints(mapz, c)
-		regions := parseRegions(points)
-		for _, region := range regions {
+		for _, region := range parseRegions(points) {
 			cost += scoreRegionWithDiscount(region, mapz)
 		}
 	}
@@ -186,7 +142,7 @@ func part2(input string) int {
 }
 
 func parsePoints(mapz []string, c int32) []Point {
-	points := make([]Point, 0)
+	var points []Point
 	for y, row := range mapz {
 		for x, v := range row {
 			if v == c {
@@ -196,5 +152,3 @@ func parsePoints(mapz []string, c int32) []Point {
 	}
 	return points
 }
-
-//1079711 too high
