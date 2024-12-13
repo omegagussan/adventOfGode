@@ -19,23 +19,13 @@ type Point struct {
 	y, x int
 }
 
-type PointCorner struct {
-	point  Point
-	corner int
+type Edge struct {
+	value     Point
+	direction int
 }
 
 func (p Point) add(p2 Point) Point {
 	return Point{p.y + p2.y, p.x + p2.x}
-}
-
-func isInMap(p Point, mapz []string) bool {
-	if p.y < 0 || p.y >= len(mapz) {
-		return false
-	}
-	if p.x < 0 || p.x >= len(mapz[p.y]) {
-		return false
-	}
-	return true
 }
 
 func main() {
@@ -95,146 +85,55 @@ func isAdjacentToRegion(point Point, region map[Point]bool) bool {
 	return false
 }
 
-func scoreRegion(region map[Point]bool) int {
-	area := len(region)
-	perimeter := 0
-	for point, _ := range region {
-		p := numberNonAdjacent(point, region)
-		perimeter += p
-	}
-	return area * perimeter
-}
-
 func scoreRegionWithDiscount(region map[Point]bool, mapz []string) int {
 	area := len(region)
-	perimeter := make(map[PointCorner]bool)
+	edgeCount := 0
+	edges := make(map[Edge]bool)
 	for point, _ := range region {
-		corner := corners(point, region, mapz)
-		for _, c := range corner {
-			perimeter[c] = true
-		}
+		c := 0
+		c, edges = countNewEdges(point, edges, region, mapz)
+		edgeCount += c
 	}
-	fmt.Println(area, perimeter)
-	return area * len(perimeter)
+	fmt.Println(area, edgeCount)
+	return area * edgeCount
 }
 
-func numberNonAdjacent(point Point, region map[Point]bool) int {
-	count := 4
-	for _, d := range adjacent {
-		t := point.add(d)
-		if region[t] {
-			count--
-		}
+func getValueByDirection(p Point, direction int) int {
+	switch direction {
+	case 0:
+		return p.x
+	case 1:
+		return p.x
+	case 2:
+		return p.y
+	case 3:
+		return p.y
 	}
-	return count
+	panic("invalid direction")
 }
 
-func corners(p Point, region map[Point]bool, mapz []string) []PointCorner {
-	adjacentPoints := getAdjacentPoints(p, region)
-	if len(adjacentPoints) == 0 {
-		points := make([]PointCorner, 0)
-		for z := 0; z < 4; z++ {
-			points = append(points, PointCorner{p, z})
-		}
-		return points
-	} else if len(adjacentPoints) == 1 {
-		if adjacentPoints[0].y == p.y {
-			if adjacentPoints[0].x > p.x {
-				return []PointCorner{
-					{p, 1},
-					{p, 2},
-				}
-			} else {
-				return []PointCorner{
-					{p, 0},
-					{p, 3},
-				}
-			}
-		} else {
-			if adjacentPoints[0].y > p.y {
-				return []PointCorner{
-					{p, 2},
-					{p, 3},
-				}
-			} else {
-				return []PointCorner{
-					{p, 0},
-					{p, 1},
-				}
-			}
-		}
-	} else if len(adjacentPoints) == 2 {
-		if isLine(adjacentPoints[0], adjacentPoints[1]) {
-			return []PointCorner{}
-		}
-		return isSingleCorner(p, region, mapz)
-	}
-
-	return isInnerCorner(p, region, mapz)
+func isInMap(p Point, mapz []string) bool {
+	return p.y >= 0 && p.y < len(mapz) && p.x >= 0 && p.x < len(mapz[0])
 }
 
-func isSingleCorner(point Point, region map[Point]bool, mapz []string) []PointCorner {
-	res := getSubSquaresWeights(point, region, mapz)
-	for r := range res {
-		if res[r] == 4 {
-			p := make([]PointCorner, 0)
-			p = append(p, PointCorner{point, r})
-			return p
-		}
-	}
-	return []PointCorner{}
-}
-
-func isInnerCorner(point Point, region map[Point]bool, mapz []string) []PointCorner {
-	pointConers := make([]PointCorner, 0)
-	res := getSubSquaresWeights(point, region, mapz)
-	for r := range res {
-		if res[r] == 3 {
-			pointConers = append(pointConers, PointCorner{point, r})
-		}
-	}
-	return pointConers
-}
-
-func getSubSquaresWeights(point Point, region map[Point]bool, mapz []string) []int {
-	res := make([]int, 4)
-	index := 0
-	for ix := 0; ix < 2; ix++ {
-		for iy := 0; iy < 2; iy++ {
-			for y := -1; y < 1; y++ {
-				for x := -1; x < 1; x++ {
-					p := Point{point.y + iy, point.x + ix}
-					t := p.add(Point{y, x})
-					if isInMap(t, mapz) && region[t] {
-						res[index]++
-					}
-				}
-			}
-			index++
-		}
-	}
-	return res
-}
-
-func getAdjacentPoints(p Point, region map[Point]bool) []Point {
-	adjacentPoints := make([]Point, 0)
-	for _, d := range adjacent {
+func countNewEdges(p Point, edges map[Edge]bool, region map[Point]bool, mapz []string) (int, map[Edge]bool) {
+	duplicates := 0
+	before := len(edges)
+	for i, d := range adjacent {
 		t := p.add(d)
-		if region[t] {
-			adjacentPoints = append(adjacentPoints, t)
+		if !isInMap(t, mapz) || !region[t] {
+			e := Edge{t, i}
+			edges[e] = true
+
+			for _, d2 := range adjacent {
+				t2 := t.add(d2)
+				if edges[Edge{t2, i}] {
+					duplicates++
+				}
+			}
 		}
 	}
-	return adjacentPoints
-}
-
-func isLine(p1 Point, p2 Point) bool {
-	if p1.y == p2.y {
-		return true
-	}
-	if p1.x == p2.x {
-		return true
-	}
-	return false
+	return len(edges) - before - duplicates, edges
 }
 
 func part1(input string) int {
@@ -249,6 +148,27 @@ func part1(input string) int {
 		}
 	}
 	return cost
+}
+
+func numberNonAdjacent(point Point, region map[Point]bool) int {
+	count := 4
+	for _, d := range adjacent {
+		t := point.add(d)
+		if region[t] {
+			count--
+		}
+	}
+	return count
+}
+
+func scoreRegion(region map[Point]bool) int {
+	area := len(region)
+	perimeter := 0
+	for point, _ := range region {
+		p := numberNonAdjacent(point, region)
+		perimeter += p
+	}
+	return area * perimeter
 }
 
 func part2(input string) int {
