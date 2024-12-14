@@ -12,9 +12,10 @@ var r = regexp.MustCompile(`p=(\d+),(\d+) v=(-?\d+),(-?\d+)`)
 
 func main() {
 	dir, _ := os.Getwd()
-	bytes, _ := os.ReadFile(dir + "/problem/2024/day14/sample.txt")
+	bytes, _ := os.ReadFile(dir + "/problem/2024/day14/input.txt")
 	input := string(bytes)
 	fmt.Println(part1(input))
+	fmt.Println(part2(input))
 }
 
 type Vector struct {
@@ -43,12 +44,35 @@ func part1(input string) int {
 		r := robots[j]
 		for i := 0; i < 100; i++ {
 			newPos := r.pos.Add(r.vel)
-			wrappedPos := wrapAround(newPos, 11, 7)
+			wrappedPos := wrapAround(newPos, 101, 103)
 			r.pos = wrappedPos
 		}
 		robots[j] = r
 	}
-	return Score(robots, 11, 7)
+	return Score(robots, 101, 103)
+}
+
+func part2(input string) int {
+	robots := make([]Robot, 0)
+	for _, s := range strings.Split(input, "\n") {
+		robots = append(robots, parseRobots(s))
+	}
+	//assumption: the robots cant form the tree if they are overlapping
+	count := 0
+	poses := make(map[Vector]bool)
+	for len(poses) < len(robots) {
+		poses = make(map[Vector]bool)
+		for j := 0; j < len(robots); j++ {
+			r := robots[j]
+			newPos := r.pos.Add(r.vel)
+			wrappedPos := wrapAround(newPos, 101, 103)
+			r.pos = wrappedPos
+			poses[r.pos] = true
+			robots[j] = r
+		}
+		count++
+	}
+	return count
 }
 
 func wrapAround(vector Vector, maxX int, maxY int) Vector {
