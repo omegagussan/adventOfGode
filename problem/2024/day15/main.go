@@ -19,9 +19,9 @@ func (v Vector) scale(s int) Vector {
 
 func parseMap(input string) [][]string {
 	half := strings.Split(input, "\n\n")
-	res := make([][]string, len(half[0]))
+	res := make([][]string, 0, len(half[0]))
 	for _, v := range strings.Split(half[0], "\n") {
-		t := make([]string, len(v))
+		t := make([]string, 0, len(v))
 		for _, c := range v {
 			t = append(t, string(c))
 		}
@@ -39,8 +39,8 @@ func sumGPS(mapz [][]string) int {
 	sum := 0
 	for i, row := range mapz {
 		for j, cell := range row {
-			if cell == "0" {
-				sum += 1000*i + j
+			if cell == "O" {
+				sum += 100*i + j
 			}
 		}
 	}
@@ -48,26 +48,40 @@ func sumGPS(mapz [][]string) int {
 }
 
 func part1(mapz [][]string, seq string) int {
-	curr := getRobotCoordinates(mapz)
+	printMap(mapz)
 	for _, a := range seq {
+		curr := getRobotCoordinates(mapz)
 		dir := nextStep(string(a))
+		fmt.Println("dir: ", string(a))
 		next := curr.add(dir)
-		for getValue(next, mapz) == "0" {
-			curr.add(next)
+		if getValue(next, mapz) == "." {
+			mapz = swap(mapz, &curr, &next)
+			continue
+		} else if getValue(next, mapz) == "#" {
+			continue
 		}
-		dir = dir.scale(-1)
-		swap(mapz, &curr, &next)
-		for getValue(next, mapz) != "@" {
-			next = curr.add(dir)
-			swap(mapz, &curr, &next)
-			curr = next
+		for getValue(next, mapz) == "O" {
+			next = next.add(dir)
 		}
+		if getValue(next, mapz) == "#" {
+			continue
+		}
+		backDir := dir.scale(-1)
+		nextNext := next.add(backDir)
+		for next != curr {
+			mapz = swap(mapz, &nextNext, &next)
+			nextNext, next = next.add(backDir), nextNext
+		}
+		printMap(mapz)
+		fmt.Println()
 	}
 	return sumGPS(mapz)
 }
 
 func swap(mapz [][]string, a, b *Vector) [][]string {
-	mapz[a.y][a.x], mapz[b.y][b.x] = mapz[b.y][b.x], mapz[a.y][a.x]
+	tmp := mapz[b.y][b.x]
+	mapz[b.y][b.x] = mapz[a.y][a.x]
+	mapz[a.y][a.x] = tmp
 	return mapz
 }
 
@@ -106,9 +120,15 @@ func getRobotCoordinates(mapz [][]string) Vector {
 
 func main() {
 	dir, _ := os.Getwd()
-	bytes, _ := os.ReadFile(dir + "/problem/2024/day15/sample.txt")
+	bytes, _ := os.ReadFile(dir + "/problem/2024/day15/input.txt")
 	input := string(bytes)
 	mapz := parseMap(input)
 	seq := parseSequence(input)
 	fmt.Println(part1(mapz, seq))
+}
+
+func printMap(mapz [][]string) {
+	for _, row := range mapz {
+		fmt.Println(row)
+	}
 }
