@@ -11,6 +11,8 @@ type Point struct {
 	x, y int
 }
 
+var candidates = []Point{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+
 func (p Point) Add(z Point) Point {
 	return Point{p.x + z.x, p.y + z.y}
 }
@@ -21,7 +23,7 @@ func (p Point) Sub(z Point) Point {
 
 func main() {
 	dir, _ := os.Getwd()
-	bytes, _ := os.ReadFile(dir + "/problem/2024/day16/sample.txt")
+	bytes, _ := os.ReadFile(dir + "/problem/2024/day16/input.txt")
 	input := string(bytes)
 	fmt.Println(part1(input))
 }
@@ -62,11 +64,12 @@ func part1(input string) int {
 			continue
 		}
 
-		neighbors := getAdjacent(current, points)
-		for _, next := range neighbors {
+		candidates := getAdjacent(current, points)
+		for _, next := range candidates {
 			if !contains(path, next) {
-				newPath := append([]Point{}, path...)
-				newPath = append(path, next)
+				newPath := make([]Point, len(path)+1)
+				copy(newPath, path)
+				newPath[len(path)] = next
 				queue = append(queue, newPath)
 			}
 		}
@@ -86,16 +89,13 @@ func contains(path []Point, p Point) bool {
 
 func score(p []Point) int {
 	direction := Point{1, 0}
-	score := 1
-	for i, _ := range p {
-		if i == 0 {
-			continue
-		}
+	score := 0
+	for i := 1; i < len(p); i++ {
 		//every turn costs 1000 points
 		//every step costs 1
 		curr := p[i]
 		old := p[i-1]
-		if curr.Add(direction) == old {
+		if curr == old.Add(direction) {
 			score++
 		} else {
 			score += 1001
@@ -106,10 +106,10 @@ func score(p []Point) int {
 }
 
 func getAdjacent(current Point, points map[Point]bool) []Point {
-	candidates := []Point{{current.x + 1, current.y}, {current.x - 1, current.y}, {current.x, current.y + 1}, {current.x, current.y - 1}}
 	res := make([]Point, 0)
-	for _, point := range candidates {
-		if _, ok := points[point]; ok {
+	for _, diff := range candidates {
+		point := current.Add(diff)
+		if points[point] {
 			res = append(res, point)
 		}
 	}
