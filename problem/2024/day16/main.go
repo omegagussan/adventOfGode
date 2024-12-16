@@ -11,6 +11,11 @@ type Point struct {
 	x, y int
 }
 
+type Head struct {
+	path  []Point
+	score int
+}
+
 var candidates = []Point{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
 
 func (p Point) Add(z Point) Point {
@@ -49,18 +54,23 @@ func part1(input string) int {
 
 	//initialize to int max
 	bestScore := common.MaxInt
-	queue := [][]Point{{start}}
+	queue := []Head{{[]Point{start}, 0}}
 
 	for len(queue) > 0 {
-		path := queue[0]
-		queue = queue[1:]
+		path := queue[len(queue)-1].path
+		currentScore := queue[len(queue)-1].score
+		queue = queue[:len(queue)-1]
 		current := path[len(path)-1]
 
 		if current == end {
-			currentScore := score(path)
 			if currentScore < bestScore {
 				bestScore = currentScore
+				fmt.Println(bestScore)
 			}
+			continue
+		}
+
+		if currentScore > bestScore {
 			continue
 		}
 
@@ -70,7 +80,7 @@ func part1(input string) int {
 				newPath := make([]Point, len(path)+1)
 				copy(newPath, path)
 				newPath[len(path)] = next
-				queue = append(queue, newPath)
+				queue = append(queue, Head{newPath, currentScore + score(path, next)})
 			}
 		}
 	}
@@ -87,22 +97,15 @@ func contains(path []Point, p Point) bool {
 	return false
 }
 
-func score(p []Point) int {
+func score(p []Point, point Point) int {
 	direction := Point{1, 0}
-	score := 0
-	for i := 1; i < len(p); i++ {
-		//every turn costs 1000 points
-		//every step costs 1
-		curr := p[i]
-		old := p[i-1]
-		if curr == old.Add(direction) {
-			score++
-		} else {
-			score += 1001
-			direction = curr.Sub(old)
-		}
+	if len(p) > 1 {
+		direction = p[len(p)-1].Sub(p[len(p)-2])
 	}
-	return score
+	if p[len(p)-1].Add(direction) == point {
+		return 1
+	}
+	return 1001
 }
 
 func getAdjacent(current Point, points map[Point]bool) []Point {
@@ -115,3 +118,6 @@ func getAdjacent(current Point, points map[Point]bool) []Point {
 	}
 	return res
 }
+
+//359296 high
+//357288 high
