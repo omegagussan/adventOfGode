@@ -1,7 +1,6 @@
 package main
 
 import (
-	"adventOfGode/common"
 	"fmt"
 	"os"
 	"strings"
@@ -53,7 +52,7 @@ func part1(input string) int {
 	}
 
 	//initialize to int max
-	bestScore := common.MaxInt
+	bestScore := make(map[Point]int)
 	queue := []Head{{[]Point{start}, 0}}
 
 	for len(queue) > 0 {
@@ -62,15 +61,12 @@ func part1(input string) int {
 		queue = queue[:len(queue)-1]
 		current := path[len(path)-1]
 
-		if current == end {
-			if currentScore < bestScore {
-				bestScore = currentScore
-				fmt.Println(bestScore)
-			}
-			continue
-		}
-
-		if currentScore > bestScore {
+		oldBest, ok := bestScore[current]
+		if !ok {
+			bestScore[current] = currentScore
+		} else if oldBest > currentScore {
+			bestScore[current] = currentScore
+		} else {
 			continue
 		}
 
@@ -85,7 +81,7 @@ func part1(input string) int {
 		}
 	}
 
-	return bestScore
+	return bestScore[end]
 }
 
 func contains(path []Point, p Point) bool {
