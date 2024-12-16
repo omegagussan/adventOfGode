@@ -29,10 +29,11 @@ func main() {
 	dir, _ := os.Getwd()
 	bytes, _ := os.ReadFile(dir + "/problem/2024/day16/input.txt")
 	input := string(bytes)
-	fmt.Println(part1(input))
+	//fmt.Println(part(input, false))
+	fmt.Println(part(input, true))
 }
 
-func part1(input string) int {
+func part(input string, part2 bool) int {
 	lines := strings.Split(input, "\n")
 	points := make(map[Point]bool)
 	start := Point{}
@@ -54,19 +55,30 @@ func part1(input string) int {
 	//initialize to int max
 	bestScore := make(map[Point]int)
 	queue := []Head{{[]Point{start}, 0}}
-
+	bestPaths := make([]Head, 0)
 	for len(queue) > 0 {
-		path := queue[len(queue)-1].path
-		currentScore := queue[len(queue)-1].score
+		head := queue[len(queue)-1]
+		path := head.path
+		currentScore := head.score
 		queue = queue[:len(queue)-1]
 		current := path[len(path)-1]
 
-		oldBest, ok := bestScore[current]
-		if !ok {
+		i, ok := bestScore[current]
+		if !ok || i > currentScore {
 			bestScore[current] = currentScore
-		} else if oldBest > currentScore {
-			bestScore[current] = currentScore
-		} else {
+			if current == end {
+				bestPaths = make([]Head, 1)
+				bestPaths[0] = head
+			}
+		} else if currentScore-i > 1001 {
+			continue
+		}
+
+		if current == end {
+			if i == currentScore {
+				bestPaths = append(bestPaths, head)
+				fmt.Println(len(queue))
+			}
 			continue
 		}
 
@@ -80,7 +92,15 @@ func part1(input string) int {
 			}
 		}
 	}
-
+	if part2 {
+		set := make(map[Point]bool)
+		for _, h := range bestPaths {
+			for _, p := range h.path {
+				set[p] = true
+			}
+		}
+		return len(set)
+	}
 	return bestScore[end]
 }
 
@@ -114,6 +134,3 @@ func getAdjacent(current Point, points map[Point]bool) []Point {
 	}
 	return res
 }
-
-//359296 high
-//357288 high
