@@ -17,13 +17,35 @@ func (v Vector) scale(s int) Vector {
 	return Vector{v.x * s, v.y * s}
 }
 
-func parseMap(input string) [][]string {
+func (v Vector) distance(o Vector) int {
+	return (v.x-o.x)*(v.x-o.x) + (v.y-o.y)*(v.y-o.y)
+}
+
+func parseMap(input string, part2 bool) [][]string {
 	half := strings.Split(input, "\n\n")
 	res := make([][]string, 0, len(half[0]))
 	for _, v := range strings.Split(half[0], "\n") {
-		t := make([]string, 0, len(v))
+		t := make([]string, 0)
 		for _, c := range v {
-			t = append(t, string(c))
+			//If the tile is #, the new map contains ## instead.
+			//If the tile is O, the new map contains [] instead.
+			//If the tile is ., the new map contains .. instead.
+			//If the tile is @, the new map contains @. instead.
+			if part2 && c == '#' {
+				t = append(t, "#")
+				t = append(t, "#")
+			} else if part2 && c == 'O' {
+				t = append(t, "[")
+				t = append(t, "]")
+			} else if part2 && c == '.' {
+				t = append(t, ".")
+				t = append(t, ".")
+			} else if part2 && c == '@' {
+				t = append(t, "@")
+				t = append(t, ".")
+			} else {
+				t = append(t, string(c))
+			}
 		}
 		res = append(res, t)
 	}
@@ -39,7 +61,7 @@ func sumGPS(mapz [][]string) int {
 	sum := 0
 	for i, row := range mapz {
 		for j, cell := range row {
-			if cell == "O" {
+			if cell == "O" || cell == "[" {
 				sum += 100*i + j
 			}
 		}
@@ -78,6 +100,80 @@ func part1(mapz [][]string, seq string) int {
 	return sumGPS(mapz)
 }
 
+func part2(mapz [][]string, seq string) int {
+	printMap(mapz)
+Outer:
+	for _, a := range seq {
+		curr := getRobotCoordinates(mapz)
+		dir := nextStep(string(a))
+		next := curr.add(dir)
+		if getValue(next, mapz) == "." {
+			mapz = swap(mapz, &curr, &next)
+			continue
+		} else if getValue(next, mapz) == "#" {
+			continue
+		}
+		if string(a) == "<" || string(a) == ">" {
+			for getValue(next, mapz) == "[" || getValue(next, mapz) == "]" {
+				next = next.add(dir.scale(2))
+			}
+			if getValue(next, mapz) == "#" {
+				continue
+			}
+			backDir := dir.scale(-1)
+			nextNext := next.add(backDir)
+			for next != curr {
+				mapz = swap(mapz, &nextNext, &next)
+				nextNext, next = next.add(backDir), nextNext
+			}
+			continue
+		}
+		//key is column
+		backshifts := make(map[int]int)
+		heads := make([]Vector, 0)
+		heads = append(heads, next)
+		for len(heads) > 0 {
+			next = heads[0]
+			heads = heads[1:]
+			if getValue(next, mapz) == "#" {
+				continue Outer
+			} else if getValue(next, mapz) == "]" {
+				heads = append(heads, next.add(Vector{-1, 0}).add(dir))
+				heads = append(heads, next.add(dir))
+			} else if getValue(next, mapz) == "[" {
+				heads = append(heads, next.add(Vector{1, 0}).add(dir))
+				heads = append(heads, next.add(dir))
+			} else {
+				//check if already exists in back-shifts.
+				old := backshifts[next.x]
+				if old-curr.y < next.y-curr.y {
+					backshifts[next.x] = next.y
+				}
+			}
+		}
+		printMap(mapz)
+		backDir := dir.scale(-1)
+		for x, y := range backshifts {
+			next = Vector{x, y}
+			nextNext := next.add(backDir)
+			diff := abs(curr.x - x)
+			for next.y != curr.add(dir.scale(1+diff)).y {
+				mapz = swap(mapz, &nextNext, &next)
+				nextNext, next = next.add(backDir), nextNext
+			}
+		}
+		tmp := curr.add(dir)
+		mapz = swap(mapz, &curr, &tmp)
+	}
+	return sumGPS(mapz)
+}
+
+func abs(i int) int {
+	if i < 0 {
+		return -i
+	}
+	return i
+}
 func swap(mapz [][]string, a, b *Vector) [][]string {
 	tmp := mapz[b.y][b.x]
 	mapz[b.y][b.x] = mapz[a.y][a.x]
@@ -122,9 +218,11 @@ func main() {
 	dir, _ := os.Getwd()
 	bytes, _ := os.ReadFile(dir + "/problem/2024/day15/input.txt")
 	input := string(bytes)
-	mapz := parseMap(input)
+	//mapz := parseMap(input, false)
+	mapz2 := parseMap(input, true)
 	seq := parseSequence(input)
-	fmt.Println(part1(mapz, seq))
+	//fmt.Println(part1(mapz, seq))
+	fmt.Println(part2(mapz2, seq))
 }
 
 func printMap(mapz [][]string) {
