@@ -24,32 +24,36 @@ func part1(input string) string {
 	fmt.Println(s)
 	output := ""
 	p := 0
+Outer:
 	for p < len(i) {
 		v := i[p]
-		if v == 0 {
+		switch v {
+		case 0:
 			divisor := math.Pow(2, float64(v))
 			res := int(float64(s[4]) / divisor)
 			s[4] = res
-		} else if v == 1 {
-			//bitwise xor
+		case 1:
 			s[5] = s[5] ^ v
-		} else if v == 2 {
+		case 2:
 			s[5] = s[5] % 8
-		} else if v == 3 && s[4] != 0 {
-			if p != v {
-				p = v
-			} else {
-				p += 2
+		case 3:
+			if s[4] != 0 {
+				if p != v {
+					p = v
+					continue Outer
+				}
 			}
-		} else if v == 4 {
+		case 4:
 			s[5] = s[5] ^ s[6]
-		} else if v == 5 {
+		case 5:
 			j := s[5] % 8
 			output += strconv.Itoa(j)
-		} else if v == 6 {
-			s[5] = s[4]/2 ^ s[6]
+		case 6:
+			divisor := math.Pow(2, float64(s[6]))
+			res := int(float64(s[4]) / divisor)
+			s[5] = res
 		}
-		p++
+		p += 2
 	}
 	return output
 }
