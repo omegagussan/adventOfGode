@@ -27,35 +27,35 @@ func (p Point) Sub(z Point) Point {
 
 func main() {
 	dir, _ := os.Getwd()
-	bytes, _ := os.ReadFile(dir + "/problem/2024/day16/input.txt")
+	bytes, _ := os.ReadFile(dir + "/problem/2024/day16/sample.txt")
 	input := string(bytes)
-	//fmt.Println(part(input, false))
+	fmt.Println(part(input, false))
 	fmt.Println(part(input, true))
 }
 
 func part(input string, part2 bool) int {
 	lines := strings.Split(input, "\n")
 	points := make(map[Point]bool)
-	start := Point{}
-	end := Point{}
-	for y := range lines {
-		for x := range lines[y] {
-			curr := lines[y][x]
-			if curr == 'S' {
+	var start, end Point
+
+	for y, line := range lines {
+		for x, curr := range line {
+			switch curr {
+			case 'S':
 				start = Point{x, y}
-			} else if curr == 'E' {
+			case 'E':
 				end = Point{x, y}
 				points[end] = true
-			} else if curr == '.' {
+			case '.':
 				points[Point{x, y}] = true
 			}
 		}
 	}
 
-	//initialize to int max
 	bestScore := make(map[Point]int)
 	queue := []Head{{[]Point{start}, 0}}
-	bestPaths := make([]Head, 0)
+	var bestPaths []Head
+
 	for len(queue) > 0 {
 		head := queue[len(queue)-1]
 		path := head.path
@@ -63,27 +63,23 @@ func part(input string, part2 bool) int {
 		queue = queue[:len(queue)-1]
 		current := path[len(path)-1]
 
-		i, ok := bestScore[current]
-		if !ok || i > currentScore {
+		if i, ok := bestScore[current]; !ok || i > currentScore {
 			bestScore[current] = currentScore
 			if current == end {
-				bestPaths = make([]Head, 1)
-				bestPaths[0] = head
+				bestPaths = []Head{head}
 			}
 		} else if currentScore-i > 1001 {
 			continue
 		}
 
 		if current == end {
-			if i == currentScore {
+			if bestScore[current] == currentScore {
 				bestPaths = append(bestPaths, head)
-				fmt.Println(len(queue))
 			}
 			continue
 		}
 
-		candidates := getAdjacent(current, points)
-		for _, next := range candidates {
+		for _, next := range getAdjacent(current, points) {
 			if !contains(path, next) {
 				newPath := make([]Point, len(path)+1)
 				copy(newPath, path)
@@ -92,6 +88,7 @@ func part(input string, part2 bool) int {
 			}
 		}
 	}
+
 	if part2 {
 		set := make(map[Point]bool)
 		for _, h := range bestPaths {
@@ -125,7 +122,7 @@ func score(p []Point, point Point) int {
 }
 
 func getAdjacent(current Point, points map[Point]bool) []Point {
-	res := make([]Point, 0)
+	var res []Point
 	for _, diff := range candidates {
 		point := current.Add(diff)
 		if points[point] {
