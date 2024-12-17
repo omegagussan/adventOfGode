@@ -2,101 +2,75 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 )
 
-var re = regexp.MustCompile(`.*: (\d+)`)
+type State struct {
+	a, b, c int
+}
+
+func combo(v int, vm State) int {
+	switch v {
+	case 0, 1, 2, 3:
+		return v
+	case 4:
+		return vm.a
+	case 5:
+		return vm.b
+	case 6:
+		return vm.c
+	default:
+		panic("invalid operand")
+	}
+}
 
 func main() {
 	dir, _ := os.Getwd()
-	bytes, _ := os.ReadFile(dir + "/problem/2024/day17/input.txt")
-	input := string(bytes)
-	fmt.Println(part1(input))
-}
+	input, _ := os.ReadFile(dir + "/problem/2024/day17/input.txt")
+	operations, state := parse(string(input))
 
-func part1(input string) string {
-	s, i := parse(input)
-	output := ""
-	p := 0
-Outer:
-	for p < len(i) {
-		v := i[p]
-		operand := i[p+1]
-		switch v {
-		case 0: // adv
-			divisor := math.Pow(2, float64(getComboOperandValue(operand, s)))
-			res := int(float64(s[4]) / divisor)
-			s[4] = res
-		case 1: // bxl
-			s[5] = s[5] ^ operand
-		case 2: // bst
-			s[5] = getComboOperandValue(operand, s) % 8
-		case 3: // jnz
-			if s[4] != 0 {
-				p = operand
-				continue Outer
+	var output []string
+	for p := 0; p < len(operations)-1; p += 2 {
+		v := operations[p+1]
+		comboValue := combo(v, state)
+		switch operations[p] {
+		case 0:
+			state.a >>= comboValue
+		case 1:
+			state.b ^= v
+		case 2:
+			state.b = comboValue % 8
+		case 3:
+			if state.a != 0 {
+				p = v - 2
 			}
-		case 4: // bxc
-			s[5] = s[5] ^ s[6]
-		case 5: // out
-			j := getComboOperandValue(operand, s) % 8
-			output += strconv.Itoa(j)
-		case 6: // bdv
-			divisor := math.Pow(2, float64(getComboOperandValue(operand, s)))
-			res := int(float64(s[4]) / divisor)
-			s[5] = res
-		case 7: // cdv
-			divisor := math.Pow(2, float64(getComboOperandValue(operand, s)))
-			res := int(float64(s[4]) / divisor)
-			s[6] = res
-		}
-		p += 2
-	}
-	return output
-}
-
-func getComboOperandValue(operand int, s map[int]int) int {
-	switch operand {
-	case 0, 1, 2, 3:
-		return operand
-	case 4:
-		return s[4]
-	case 5:
-		return s[5]
-	case 6:
-		return s[6]
-	default:
-		panic("this should not happen!")
-	}
-}
-
-func parse(input string) (map[int]int, []int) {
-	parts := strings.Split(input, "\n\n")
-
-	//parse dict
-	state := make(map[int]int)
-	for x, l := range strings.Split(parts[0], "\n") {
-		m := re.FindStringSubmatch(l)
-		if len(m) == 2 {
-			v, _ := strconv.Atoi(m[1])
-			state[x+4] = v
+		case 4:
+			state.b ^= state.c
+		case 5:
+			output = append(output, strconv.Itoa(comboValue%8))
+		case 6:
+			state.b = state.a >> comboValue
+		case 7:
+			state.c = state.a >> comboValue
 		}
 	}
-
-	//parse instructions
-	is := strings.Replace(parts[1], "Program: ", "", 1)
-	instructions := make([]int, 0)
-
-	for _, i := range strings.Split(is, ",") {
-		v, _ := strconv.Atoi(i)
-		instructions = append(instructions, v)
-	}
-
-	return state, instructions
+	fmt.Println(strings.Join(output, ","))
 }
 
-//432645324
+func parse(inputStr string) ([]int, State) {
+	var state State
+	var operationString string
+	fmt.Sscanf(inputStr, "Register A: %d\nRegister B: %d\nRegister C: %d\n\nProgram: %s\n", &state.a, &state.b, &state.c, &operationString)
+	return parseOperations(operationString), state
+}
+
+func parseOperations(programStr string) []int {
+	parts := strings.Split(programStr, ",")
+	operations := make([]int, len(parts))
+	for i, op := range parts {
+		operations[i], _ = strconv.Atoi(op)
+	}
+	return operations
+}
