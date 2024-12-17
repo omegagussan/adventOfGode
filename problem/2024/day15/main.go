@@ -13,6 +13,7 @@ type Vector struct {
 func (v Vector) add(v2 Vector) Vector {
 	return Vector{v.x + v2.x, v.y + v2.y}
 }
+
 func (v Vector) scale(s int) Vector {
 	return Vector{v.x * s, v.y * s}
 }
@@ -22,39 +23,31 @@ func (v Vector) distance(o Vector) int {
 }
 
 func parseMap(input string, part2 bool) [][]string {
-	half := strings.Split(input, "\n\n")
-	res := make([][]string, 0, len(half[0]))
-	for _, v := range strings.Split(half[0], "\n") {
-		t := make([]string, 0)
-		for _, c := range v {
-			//If the tile is #, the new map contains ## instead.
-			//If the tile is O, the new map contains [] instead.
-			//If the tile is ., the new map contains .. instead.
-			//If the tile is @, the new map contains @. instead.
-			if part2 && c == '#' {
-				t = append(t, "#")
-				t = append(t, "#")
-			} else if part2 && c == 'O' {
-				t = append(t, "[")
-				t = append(t, "]")
-			} else if part2 && c == '.' {
-				t = append(t, ".")
-				t = append(t, ".")
-			} else if part2 && c == '@' {
-				t = append(t, "@")
-				t = append(t, ".")
-			} else {
-				t = append(t, string(c))
+	lines := strings.Split(input, "\n\n")[0]
+	res := make([][]string, 0)
+	for _, line := range strings.Split(lines, "\n") {
+		row := make([]string, 0)
+		for _, c := range line {
+			switch {
+			case part2 && c == '#':
+				row = append(row, "#", "#")
+			case part2 && c == 'O':
+				row = append(row, "[", "]")
+			case part2 && c == '.':
+				row = append(row, ".", ".")
+			case part2 && c == '@':
+				row = append(row, "@", ".")
+			default:
+				row = append(row, string(c))
 			}
 		}
-		res = append(res, t)
+		res = append(res, row)
 	}
 	return res
 }
 
 func parseSequence(input string) string {
-	half := strings.Split(input, "\n\n")
-	return strings.Replace(half[1], "\n", "", -1)
+	return strings.Replace(strings.Split(input, "\n\n")[1], "\n", "", -1)
 }
 
 func sumGPS(mapz [][]string) int {
@@ -74,12 +67,12 @@ func part1(mapz [][]string, seq string) int {
 	for _, a := range seq {
 		curr := getRobotCoordinates(mapz)
 		dir := nextStep(string(a))
-		fmt.Println("dir: ", string(a))
 		next := curr.add(dir)
 		if getValue(next, mapz) == "." {
 			mapz = swap(mapz, &curr, &next)
 			continue
-		} else if getValue(next, mapz) == "#" {
+		}
+		if getValue(next, mapz) == "#" {
 			continue
 		}
 		for getValue(next, mapz) == "O" {
@@ -102,7 +95,6 @@ func part1(mapz [][]string, seq string) int {
 
 func part2(mapz [][]string, seq string) int {
 	printMap(mapz)
-Outer:
 	for _, a := range seq {
 		curr := getRobotCoordinates(mapz)
 		dir := nextStep(string(a))
@@ -110,7 +102,8 @@ Outer:
 		if getValue(next, mapz) == "." {
 			mapz = swap(mapz, &curr, &next)
 			continue
-		} else if getValue(next, mapz) == "#" {
+		}
+		if getValue(next, mapz) == "#" {
 			continue
 		}
 		if string(a) == "<" || string(a) == ">" {
@@ -128,25 +121,20 @@ Outer:
 			}
 			continue
 		}
-		//key is column
 		backshifts := make(map[int]int)
-		heads := make([]Vector, 0)
-		heads = append(heads, next)
+		heads := []Vector{next}
 		for len(heads) > 0 {
 			next = heads[0]
 			heads = heads[1:]
 			if getValue(next, mapz) == "#" {
-				continue Outer
-			} else if getValue(next, mapz) == "]" {
-				heads = append(heads, next.add(Vector{-1, 0}).add(dir))
-				heads = append(heads, next.add(dir))
+				continue
+			}
+			if getValue(next, mapz) == "]" {
+				heads = append(heads, next.add(Vector{-1, 0}).add(dir), next.add(dir))
 			} else if getValue(next, mapz) == "[" {
-				heads = append(heads, next.add(Vector{1, 0}).add(dir))
-				heads = append(heads, next.add(dir))
+				heads = append(heads, next.add(Vector{1, 0}).add(dir), next.add(dir))
 			} else {
-				//check if already exists in back-shifts.
-				old := backshifts[next.x]
-				if old-curr.y < next.y-curr.y {
+				if old, exists := backshifts[next.x]; !exists || old-curr.y < next.y-curr.y {
 					backshifts[next.x] = next.y
 				}
 			}
@@ -174,10 +162,9 @@ func abs(i int) int {
 	}
 	return i
 }
+
 func swap(mapz [][]string, a, b *Vector) [][]string {
-	tmp := mapz[b.y][b.x]
-	mapz[b.y][b.x] = mapz[a.y][a.x]
-	mapz[a.y][a.x] = tmp
+	mapz[b.y][b.x], mapz[a.y][a.x] = mapz[a.y][a.x], mapz[b.y][b.x]
 	return mapz
 }
 
@@ -202,7 +189,6 @@ func getValue(v Vector, mapz [][]string) string {
 	return mapz[v.y][v.x]
 }
 
-// x, y
 func getRobotCoordinates(mapz [][]string) Vector {
 	for y, row := range mapz {
 		for x, cell := range row {
@@ -218,11 +204,11 @@ func main() {
 	dir, _ := os.Getwd()
 	bytes, _ := os.ReadFile(dir + "/problem/2024/day15/input.txt")
 	input := string(bytes)
-	//mapz := parseMap(input, false)
-	mapz2 := parseMap(input, true)
+	//mapz2 := parseMap(input, true)
+	mapz := parseMap(input, false)
 	seq := parseSequence(input)
-	//fmt.Println(part1(mapz, seq))
-	fmt.Println(part2(mapz2, seq))
+	fmt.Println(part1(mapz, seq))
+	//fmt.Println(part2(mapz2, seq))
 }
 
 func printMap(mapz [][]string) {
