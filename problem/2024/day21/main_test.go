@@ -20,8 +20,8 @@ func TestGoToHorizontal(t *testing.T) {
 
 func TestGoToDiagonal(t *testing.T) {
 	res := goToNumerical('1', '9')
-	if res != "<<vv" {
-		t.Errorf("Expected vv>>, got %s", res)
+	if res != "vv<<" {
+		t.Errorf("Expected vv<<, got %s", res)
 	}
 }
 
@@ -62,8 +62,8 @@ func TestGoToA2(t *testing.T) {
 
 func TestGoToFromA(t *testing.T) {
 	res := goToNumerical('1', 'A')
-	if res != "<<^" {
-		t.Errorf("Expected <<^, got %s", res)
+	if res != "^<<" {
+		t.Errorf("Expected ^<<, got %s", res)
 	}
 }
 

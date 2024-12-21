@@ -9,7 +9,7 @@ import (
 
 func main() {
 	dir, _ := os.Getwd()
-	bytes, _ := os.ReadFile(dir + "/problem/2024/day21/sample.txt")
+	bytes, _ := os.ReadFile(dir + "/problem/2024/day21/input.txt")
 	input := string(bytes)
 	fmt.Println(part1(input))
 }
@@ -72,16 +72,30 @@ func goToDirectional(target rune, curr rune) string {
 
 	var sb strings.Builder
 
-	if dx > 0 {
-		sb.WriteString(strings.Repeat(">", dx))
-	} else if dx < 0 {
-		sb.WriteString(strings.Repeat("<", -dx))
-	}
+	if startPos[0] == 0 {
+		if dy > 0 {
+			sb.WriteString(strings.Repeat("v", dy))
+		} else if dy < 0 {
+			sb.WriteString(strings.Repeat("^", -dy))
+		}
 
-	if dy > 0 {
-		sb.WriteString(strings.Repeat("v", dy))
-	} else if dy < 0 {
-		sb.WriteString(strings.Repeat("^", -dy))
+		if dx > 0 {
+			sb.WriteString(strings.Repeat(">", dx))
+		} else if dx < 0 {
+			sb.WriteString(strings.Repeat("<", -dx))
+		}
+	} else {
+		if dx > 0 {
+			sb.WriteString(strings.Repeat(">", dx))
+		} else if dx < 0 {
+			sb.WriteString(strings.Repeat("<", -dx))
+		}
+
+		if dy > 0 {
+			sb.WriteString(strings.Repeat("v", dy))
+		} else if dy < 0 {
+			sb.WriteString(strings.Repeat("^", -dy))
+		}
 	}
 
 	return sb.String()
@@ -113,17 +127,33 @@ func goToNumerical(end, start rune) string {
 
 	var sb strings.Builder
 
-	if dx > 0 {
-		sb.WriteString(strings.Repeat(">", dx))
-	} else if dx < 0 {
-		sb.WriteString(strings.Repeat("<", -dx))
-	}
+	if startPos[0] == 3 {
+		if dy > 0 {
+			sb.WriteString(strings.Repeat("v", dy))
+		} else if dy < 0 {
+			sb.WriteString(strings.Repeat("^", -dy))
+		}
 
-	if dy > 0 {
-		sb.WriteString(strings.Repeat("v", dy))
-	} else if dy < 0 {
-		sb.WriteString(strings.Repeat("^", -dy))
+		if dx > 0 {
+			sb.WriteString(strings.Repeat(">", dx))
+		} else if dx < 0 {
+			sb.WriteString(strings.Repeat("<", -dx))
+		}
+	} else {
+		if dx > 0 {
+			sb.WriteString(strings.Repeat(">", dx))
+		} else if dx < 0 {
+			sb.WriteString(strings.Repeat("<", -dx))
+		}
+
+		if dy > 0 {
+			sb.WriteString(strings.Repeat("v", dy))
+		} else if dy < 0 {
+			sb.WriteString(strings.Repeat("^", -dy))
+		}
 	}
 
 	return sb.String()
 }
+
+//258330 too high
