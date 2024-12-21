@@ -18,6 +18,7 @@ func part1(input string) int {
 	split := strings.Split(input, "\n")
 	sum := 0
 	for _, line := range split {
+		fmt.Println(line)
 		i, _ := strconv.Atoi(line[:len(line)-1])
 		t := numericalToDirectional(line)
 		fmt.Println(t, len(t))
@@ -35,7 +36,7 @@ func numericalToDirectional(seq string) string {
 	curr := 'A'
 	output := ""
 	for _, num := range seq {
-		output += goToNumerical(num, curr, "") + "A"
+		output += goToNumerical(num, curr) + "A"
 		curr = num
 	}
 	return output
@@ -45,7 +46,7 @@ func directionalToDirectional(seq string) string {
 	curr := 'A'
 	output := ""
 	for _, num := range seq {
-		output += goToDirectional(num, curr, "") + "A"
+		output += goToDirectional(num, curr) + "A"
 		curr = num
 	}
 	return output
@@ -57,40 +58,33 @@ func directionalToDirectional(seq string) string {
 // +---+---+---+
 // | < | v | > |
 // +---+---+---+
-func goToDirectional(target rune, curr rune, state string) string {
-	if target == curr {
-		return state
+func goToDirectional(target rune, curr rune) string {
+	keypad := map[rune][2]int{
+		'^': {0, 1}, 'A': {0, 2},
+		'<': {1, 0}, 'v': {1, 1}, '>': {1, 2},
 	}
-	if curr == 'A' && target == '^' {
-		return "<"
-	} else if curr == 'A' && target == '>' {
-		return "v"
-	} else if curr == '>' && target == 'A' {
-		return "^"
-	} else if curr == '^' && target == 'A' {
-		return ">"
-	} else if curr == 'A' {
-		return "<" + goToDirectional(target, '^', state)
-	} else if target == 'A' {
-		return goToDirectional('^', curr, state) + ">"
-	} else if curr == 'v' {
-		return string(target)
-	} else if target == 'v' {
-		return toMiddleInDirectional(curr)
-	} else {
-		return toMiddleInDirectional(curr) + goToDirectional(target, 'v', state)
-	}
-}
 
-func toMiddleInDirectional(curr rune) string {
-	if curr == '^' {
-		return "v"
-	} else if curr == '>' {
-		return "<"
-	} else if curr == '<' {
-		return ">"
+	startPos := keypad[curr]
+	endPos := keypad[target]
+
+	dx := endPos[1] - startPos[1]
+	dy := endPos[0] - startPos[0]
+
+	var sb strings.Builder
+
+	if dx > 0 {
+		sb.WriteString(strings.Repeat(">", dx))
+	} else if dx < 0 {
+		sb.WriteString(strings.Repeat("<", -dx))
 	}
-	panic("invalid direction")
+
+	if dy > 0 {
+		sb.WriteString(strings.Repeat("v", dy))
+	} else if dy < 0 {
+		sb.WriteString(strings.Repeat("^", -dy))
+	}
+
+	return sb.String()
 }
 
 // +---+---+---+
@@ -103,36 +97,33 @@ func toMiddleInDirectional(curr rune) string {
 //
 //	| 0 | A |
 //	+---+---+
-func goToNumerical(target rune, curr rune, state string) string {
-	if target == curr {
-		return state
+func goToNumerical(end, start rune) string {
+	keypad := map[rune][2]int{
+		'7': {0, 0}, '8': {0, 1}, '9': {0, 2},
+		'4': {1, 0}, '5': {1, 1}, '6': {1, 2},
+		'1': {2, 0}, '2': {2, 1}, '3': {2, 2},
+		'0': {3, 1}, 'A': {3, 2},
 	}
-	if curr == 'A' && target == '0' {
-		return "<"
-	} else if target == 'A' && curr == '0' {
-		return ">"
-	} else if target == 'A' && curr == '3' {
-		return "v"
-	} else if target == 'A' {
-		return goToNumerical('3', curr, state) + "v"
-	} else if curr == 'A' {
-		return "^" + goToNumerical(target, '3', state)
-	} else if target == '0' {
-		return goToNumerical('2', curr, state) + "v"
-	} else if curr == '0' {
-		return "^" + goToNumerical(target, '2', state)
-	} else if curr-target > 2 {
-		state += "v"
-		curr -= 3
-	} else if target-curr > 2 {
-		state += "^"
-		curr += 3
-	} else if curr-target < 0 {
-		state += ">"
-		curr++
-	} else {
-		state += "<"
-		curr--
+
+	startPos := keypad[start]
+	endPos := keypad[end]
+
+	dx := endPos[1] - startPos[1]
+	dy := endPos[0] - startPos[0]
+
+	var sb strings.Builder
+
+	if dx > 0 {
+		sb.WriteString(strings.Repeat(">", dx))
+	} else if dx < 0 {
+		sb.WriteString(strings.Repeat("<", -dx))
 	}
-	return goToNumerical(target, curr, state)
+
+	if dy > 0 {
+		sb.WriteString(strings.Repeat("v", dy))
+	} else if dy < 0 {
+		sb.WriteString(strings.Repeat("^", -dy))
+	}
+
+	return sb.String()
 }
