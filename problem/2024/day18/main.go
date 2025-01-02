@@ -14,16 +14,17 @@ type Step struct {
 	steps int
 }
 
-func parsePoints(input string, bytes int) map[Point]bool {
-	points := make(map[Point]bool)
-	for _, line := range strings.Split(input, "\n")[:bytes] {
+func parsePoints(input string) []Point {
+	splits := strings.Split(input, "\n")
+	points := make([]Point, len(splits))
+	for index, line := range splits {
 		coords := strings.Split(line, ",")
 		if len(coords) != 2 {
 			continue
 		}
 		x, _ := strconv.Atoi(coords[0])
 		y, _ := strconv.Atoi(coords[1])
-		points[Point{y, x}] = true
+		points[index] = Point{y, x}
 	}
 	return points
 }
@@ -33,8 +34,37 @@ func main() {
 	bytes, _ := os.ReadFile(dir + "/problem/2024/day18/input.txt")
 	start := Point{0, 0}
 	goal := Point{70, 70}
-	input := parsePoints(string(bytes), 1024)
-	fmt.Println(findShortestPath(start, goal, input))
+	input := parsePoints(string(bytes))
+	part1 := toMap(input, 1024)
+	fmt.Println(findShortestPath(start, goal, part1))
+	fmt.Println(findFirstNonSolution(start, goal, input))
+}
+
+func findFirstNonSolution(start Point, goal Point, walls []Point) Point {
+	wallsMap := toMap(walls, 1024)
+	remaining := walls[1024:]
+	prev := Point{-1, -1}
+	curr := remaining[0]
+	remaining = remaining[1:]
+	for findShortestPath(start, goal, wallsMap) != -1 {
+		addPoint(wallsMap, curr)
+		prev = curr
+		curr = remaining[0]
+		remaining = remaining[1:]
+	}
+	return prev
+}
+
+func toMap(points []Point, bytes int) map[Point]bool {
+	r := make(map[Point]bool)
+	for _, p := range points[:bytes] {
+		r[p] = true
+	}
+	return r
+}
+
+func addPoint(m map[Point]bool, p Point) {
+	m[p] = true
 }
 
 func getNeighbors(p Point) []Point {
