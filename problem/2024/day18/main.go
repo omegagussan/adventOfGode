@@ -37,20 +37,17 @@ func main() {
 	input := parsePoints(string(bytes))
 	part1 := toMap(input, 1024)
 	fmt.Println(findShortestPath(start, goal, part1))
-	fmt.Println(findFirstNonSolution(start, goal, input))
+	fmt.Println(findFirstNonSolution(start, goal, input[1024:], part1))
 }
 
-func findFirstNonSolution(start Point, goal Point, walls []Point) Point {
-	wallsMap := toMap(walls, 1024)
-	remaining := walls[1024:]
+func findFirstNonSolution(start, goal Point, remaining []Point, walls map[Point]bool) Point {
 	prev := Point{-1, -1}
-	curr := remaining[0]
-	remaining = remaining[1:]
-	for findShortestPath(start, goal, wallsMap) != -1 {
-		addPoint(wallsMap, curr)
+	for _, curr := range remaining {
+		if findShortestPath(start, goal, walls) == -1 {
+			return prev
+		}
 		prev = curr
-		curr = remaining[0]
-		remaining = remaining[1:]
+		walls[curr] = true
 	}
 	return prev
 }
