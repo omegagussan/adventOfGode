@@ -11,6 +11,8 @@ func main() {
 	bytes, _ := os.ReadFile(dir + "/problem/2024/day19/input.txt")
 	towels, patterns := parse(string(bytes))
 	fmt.Println(part1(towels, patterns))
+	fmt.Println(part2(towels, patterns))
+
 }
 
 // returns available towels, desired patterns
@@ -29,6 +31,15 @@ func part1(towels []string, patterns []string) int {
 	return count
 }
 
+func part2(towels []string, patterns []string) int {
+	count := 0
+	cache := make(map[string]int)
+	for _, pattern := range patterns {
+		count += solutions(pattern, towels, cache)
+	}
+	return count
+}
+
 func solves(pattern string, towels []string) bool {
 	if pattern == "" {
 		return true
@@ -41,4 +52,23 @@ func solves(pattern string, towels []string) bool {
 		}
 	}
 	return false
+}
+
+func solutions(pattern string, towels []string, cache map[string]int) int {
+	if val, ok := cache[pattern]; ok {
+		return val
+	}
+
+	if pattern == "" {
+		return 1
+	}
+
+	acc := 0
+	for _, towel := range towels {
+		if strings.HasPrefix(pattern, towel) {
+			acc += solutions(pattern[len(towel):], towels, cache)
+		}
+	}
+	cache[pattern] = acc
+	return acc
 }
