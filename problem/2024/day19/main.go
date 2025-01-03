@@ -12,19 +12,18 @@ func main() {
 	towels, patterns := parse(string(bytes))
 	fmt.Println(part1(towels, patterns))
 	fmt.Println(part2(towels, patterns))
-
 }
 
-// returns available towels, desired patterns
 func parse(input string) ([]string, []string) {
-	split := strings.Split(input, "\n\n")
-	return strings.Split(split[0], ", "), strings.Split(split[1], "\n")
+	parts := strings.Split(input, "\n\n")
+	return strings.Split(parts[0], ", "), strings.Split(parts[1], "\n")
 }
 
 func part1(towels []string, patterns []string) int {
 	count := 0
+	cache := make(map[string]int)
 	for _, pattern := range patterns {
-		if solves(pattern, towels) {
+		if solutions(pattern, towels, cache) != 0 {
 			count++
 		}
 	}
@@ -40,29 +39,13 @@ func part2(towels []string, patterns []string) int {
 	return count
 }
 
-func solves(pattern string, towels []string) bool {
-	if pattern == "" {
-		return true
-	}
-	for _, towel := range towels {
-		if strings.HasPrefix(pattern, towel) {
-			if solves(pattern[len(towel):], towels) {
-				return true
-			}
-		}
-	}
-	return false
-}
-
 func solutions(pattern string, towels []string, cache map[string]int) int {
 	if val, ok := cache[pattern]; ok {
 		return val
 	}
-
 	if pattern == "" {
 		return 1
 	}
-
 	acc := 0
 	for _, towel := range towels {
 		if strings.HasPrefix(pattern, towel) {
