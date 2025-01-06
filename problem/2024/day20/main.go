@@ -20,9 +20,12 @@ func main() {
 	bytes, _ := os.ReadFile(dir + "/problem/2024/day20/sample.txt")
 	walls, start, end := parse(string(bytes))
 	baseline := findShortestPath(walls, start, end)
+	fmt.Println(start, end)
 	fmt.Println(len(baseline))
 	fmt.Println(part1(walls, start, end, len(baseline), 40))
-	fmt.Println(part2(baseline, 76))
+	//add start to the start of baseline
+	baseline = append([]Point{start}, baseline...)
+	fmt.Println(part2(baseline, 72))
 }
 
 func part1(walls map[Point]bool, start, end Point, baseline, savings int) int {
@@ -40,24 +43,32 @@ func part1(walls map[Point]bool, start, end Point, baseline, savings int) int {
 
 func part2(baseline []Point, savings int) int {
 	cheats := 0
+
 	baselineWalls := make(map[Point]bool)
 	for _, p := range baseline {
 		baselineWalls[p] = true
 	}
 	for i, src := range baseline {
-		desiredLookForward := i + savings
+		desiredLookForward := i + savings - 1
 		if desiredLookForward >= len(baseline) {
 			break
 		}
 
 		for j, dst := range baseline[desiredLookForward:] {
 			baselineWalls[dst] = false
+			baselineWalls[src] = false
 			cheat := findShortestPath(baselineWalls, src, dst)
-			newPathLength := i + len(cheat) + len(baseline[desiredLookForward+j+1:])
-			if len(cheat) > 0 && len(baseline)-newPathLength >= savings {
+			//add src to the start of the cheat
+			cheat = append([]Point{src}, cheat...)
+			newPathLength := len(baseline[:i]) + len(cheat[:len(cheat)-1]) + len(baseline[desiredLookForward+j:])
+			newSaving := len(baseline) - newPathLength
+			if len(cheat) > 0 && len(cheat) <= 22 && newSaving >= savings {
+				fmt.Println(baseline[:i], "|", cheat[:len(cheat)-1], "|", baseline[desiredLookForward+j:])
+				fmt.Println(newSaving)
 				cheats++
 			}
 			baselineWalls[dst] = true
+			baselineWalls[src] = true
 		}
 	}
 	return cheats
