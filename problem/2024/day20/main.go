@@ -57,15 +57,18 @@ func part2(baseline []Point, savings int) int {
 		for j, dst := range baseline[desiredLookForward:] {
 			baselineWalls[dst] = false
 			baselineWalls[src] = false
-			cheat := findShortestPath(baselineWalls, src, dst)
-			//add src to the start of the cheat
-			cheat = append([]Point{src}, cheat...)
-			newPathLength := len(baseline[:i]) + len(cheat[:len(cheat)-1]) + len(baseline[desiredLookForward+j:])
-			newSaving := len(baseline) - newPathLength
-			if len(cheat) > 0 && len(cheat) <= 22 && newSaving >= savings {
-				fmt.Println(baseline[:i], "|", cheat[:len(cheat)-1], "|", baseline[desiredLookForward+j:])
-				fmt.Println(newSaving)
-				cheats++
+			cheatz := findAllPaths(baselineWalls, src, dst, savings-len(baseline[:i])-len(baseline[desiredLookForward+j+1:]))
+			for _, cheat := range cheatz {
+				// add src to the start of the cheat
+				if len(cheat) > 0 && len(cheat) <= 22 {
+					newPathLength := len(baseline[:i]) + len(cheat) + len(baseline[desiredLookForward+j+1:])
+					newSaving := len(baseline) - newPathLength
+					if newSaving >= savings {
+						fmt.Println(baseline[:i], "|", cheat, "|", baseline[desiredLookForward+j+1:])
+						fmt.Println(newSaving)
+						cheats++
+					}
+				}
 			}
 			baselineWalls[dst] = true
 			baselineWalls[src] = true
@@ -106,6 +109,40 @@ func findShortestPath(walls map[Point]bool, start, end Point) []Point {
 		}
 	}
 	return []Point{}
+}
+
+func findAllPaths(walls map[Point]bool, start, end Point, earlyStop int) [][]Point {
+	paths := make([][]Point, 0)
+	queue := []Step{{start, []Point{start}}}
+	visited := make(map[Point]bool) // Moved outside the loop
+
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+
+		if current.point == end {
+			paths = append(paths, current.steps)
+			continue
+		}
+
+		for _, neighbor := range neighbors(current.point) {
+			if len(current.steps) > earlyStop {
+				continue
+			}
+
+			if walls[neighbor] || visited[neighbor] {
+				continue
+			}
+
+			visited[neighbor] = true // Mark as visited
+
+			tmp := make([]Point, len(current.steps)+1)
+			copy(tmp, current.steps)
+			tmp[len(tmp)-1] = neighbor
+			queue = append(queue, Step{neighbor, tmp})
+		}
+	}
+	return paths
 }
 
 func parse(input string) (map[Point]bool, Point, Point) {
