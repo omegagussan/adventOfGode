@@ -1,7 +1,6 @@
 package main
 
 import (
-	"adventOfGode/common"
 	"fmt"
 	"os"
 	"strings"
@@ -13,60 +12,55 @@ type Point struct {
 
 type Step struct {
 	point Point
-	steps int
+	steps []Point
 }
 
 func main() {
 	dir, _ := os.Getwd()
-	bytes, _ := os.ReadFile(dir + "/problem/2024/day20/input.txt")
+	bytes, _ := os.ReadFile(dir + "/problem/2024/day20/sample.txt")
 	walls, start, end := parse(string(bytes))
 	baseline := findShortestPath(walls, start, end)
-	topLeft, bottomRight := findMinMax(walls)
-	fmt.Println(baseline)
-	fmt.Println(part1(walls, start, end, topLeft, bottomRight, baseline))
+	fmt.Println(len(baseline))
+	fmt.Println(part1(walls, start, end, len(baseline), 40))
+	fmt.Println(part2(baseline, 76))
 }
 
-func part1(walls map[Point]bool, start, end, topLeft, bottomRight Point, baseline int) int {
+func part1(walls map[Point]bool, start, end Point, baseline, savings int) int {
 	cheats := 0
 	for wall, _ := range walls {
-		if !isWithinBounds(wall, topLeft, bottomRight) {
-			continue
-		}
-		//walls without current wall
 		walls[wall] = false
-		candidate := findShortestPath(walls, start, end)
-		//fmt.Println(candidate)
+		candidate := len(findShortestPath(walls, start, end))
 		walls[wall] = true
-		if candidate > -1 && baseline-candidate >= 100 {
+		if candidate > 0 && baseline-candidate >= savings {
 			cheats++
 		}
 	}
 	return cheats
 }
 
-func isWithinBounds(p, topLeft, bottomRight Point) bool {
-	return p.y > topLeft.y && p.y < bottomRight.y && p.x > topLeft.x && p.x < bottomRight.x
-}
+func part2(baseline []Point, savings int) int {
+	cheats := 0
+	baselineWalls := make(map[Point]bool)
+	for _, p := range baseline {
+		baselineWalls[p] = true
+	}
+	for i, src := range baseline {
+		desiredLookForward := i + savings
+		if desiredLookForward >= len(baseline) {
+			break
+		}
 
-func findMinMax(walls map[Point]bool) (Point, Point) {
-	minY, minX := common.MaxInt, common.MaxInt
-	maxY, maxX := 0, 0
-	for point := range walls {
-		if point.y < minY {
-			minY = point.y
-		}
-		if point.y > maxY {
-			maxY = point.y
-		}
-		if point.x < minX {
-			minX = point.x
-		}
-		if point.x > maxX {
-			maxX = point.x
+		for j, dst := range baseline[desiredLookForward:] {
+			baselineWalls[dst] = false
+			cheat := findShortestPath(baselineWalls, src, dst)
+			newPathLength := i + len(cheat) + len(baseline[desiredLookForward+j+1:])
+			if len(cheat) > 0 && len(baseline)-newPathLength >= savings {
+				cheats++
+			}
+			baselineWalls[dst] = true
 		}
 	}
-	return Point{minY, minX}, Point{maxY, maxX}
-
+	return cheats
 }
 
 func neighbors(p Point) []Point {
@@ -78,9 +72,9 @@ func neighbors(p Point) []Point {
 	}
 }
 
-func findShortestPath(walls map[Point]bool, start, end Point) int {
+func findShortestPath(walls map[Point]bool, start, end Point) []Point {
 	// BFS
-	queue := []Step{{start, 0}}
+	queue := []Step{{start, []Point{}}}
 	visited := make(map[Point]bool)
 	visited[start] = true
 	for len(queue) > 0 {
@@ -94,10 +88,13 @@ func findShortestPath(walls map[Point]bool, start, end Point) int {
 				continue
 			}
 			visited[neighbor] = true
-			queue = append(queue, Step{neighbor, current.steps + 1})
+			tmp := make([]Point, len(current.steps)+1)
+			copy(tmp, current.steps)
+			tmp[len(tmp)-1] = neighbor
+			queue = append(queue, Step{neighbor, tmp})
 		}
 	}
-	return -1
+	return []Point{}
 }
 
 func parse(input string) (map[Point]bool, Point, Point) {
