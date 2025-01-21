@@ -18,14 +18,13 @@ type Step struct {
 func main() {
 	dir, _ := os.Getwd()
 	bytes, _ := os.ReadFile(dir + "/problem/2024/day20/sample.txt")
-	walls, start, end := parse(string(bytes))
+	walls, start, end, free := parse(string(bytes))
 	baseline := findShortestPath(walls, start, end)
-	fmt.Println(start, end)
-	fmt.Println(len(baseline))
 	fmt.Println(part1(walls, start, end, len(baseline), 40))
 	//add start to the start of baseline
 	baseline = append([]Point{start}, baseline...)
-	fmt.Println(part2(baseline, 72))
+	free[end] = true
+	fmt.Println(part2(baseline, walls, free, 72))
 }
 
 func part1(walls map[Point]bool, start, end Point, baseline, savings int) int {
@@ -41,37 +40,47 @@ func part1(walls map[Point]bool, start, end Point, baseline, savings int) int {
 	return cheats
 }
 
-func part2(baseline []Point, savings int) int {
+func manhattan(p1, p2 Point) int {
+	return abs(p1.y-p2.y) + abs(p1.x-p2.x)
+}
+
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+func part2(baseline []Point, walls, free map[Point]bool, savings int) int {
 	cheats := 0
 
-	baselineWalls := make(map[Point]bool)
-	for _, p := range baseline {
-		baselineWalls[p] = true
-	}
-	for i, src := range baseline {
-		desiredLookForward := i + savings - 1
-		if desiredLookForward >= len(baseline) {
-			break
-		}
-
-		for j, dst := range baseline[desiredLookForward:] {
-			baselineWalls[dst] = false
-			baselineWalls[src] = false
-			cheatz := findAllPaths(baselineWalls, src, dst, savings-len(baseline[:i])-len(baseline[desiredLookForward+j+1:]))
-			for _, cheat := range cheatz {
-				// add src to the start of the cheat
-				if len(cheat) > 0 && len(cheat) <= 22 {
-					newPathLength := len(baseline[:i]) + len(cheat) + len(baseline[desiredLookForward+j+1:])
-					newSaving := len(baseline) - newPathLength
-					if newSaving >= savings {
-						fmt.Println(baseline[:i], "|", cheat, "|", baseline[desiredLookForward+j+1:])
-						fmt.Println(newSaving)
+	for i, src := range baseline[:len(baseline)-savings+1] {
+		for dst, _ := range free {
+			if src == dst {
+				continue
+			}
+			if manhattan(src, dst) > 20 {
+				continue
+			}
+			free[dst] = false
+			cheat := findShortestPath(free, src, dst)
+			free[dst] = true
+			if len(cheat) > 0 && len(cheat) <= 20 {
+				rest := findShortestPath(walls, dst, baseline[len(baseline)-1])
+				if len(rest) > 0 {
+					newPathLen := len(cheat) + len(rest) + len(baseline[:i+1])
+					if len(baseline)-newPathLen >= savings {
+						fmt.Println(len(baseline) - newPathLen)
+						cheats++
+					}
+				} else if dst == baseline[len(baseline)-1] {
+					newPathLen := len(cheat) + len(baseline[:i+1])
+					if len(baseline)-newPathLen >= savings {
+						fmt.Println(len(baseline) - newPathLen)
 						cheats++
 					}
 				}
 			}
-			baselineWalls[dst] = true
-			baselineWalls[src] = true
 		}
 	}
 	return cheats
@@ -111,42 +120,9 @@ func findShortestPath(walls map[Point]bool, start, end Point) []Point {
 	return []Point{}
 }
 
-func findAllPaths(walls map[Point]bool, start, end Point, earlyStop int) [][]Point {
-	paths := make([][]Point, 0)
-	queue := []Step{{start, []Point{start}}}
-	visited := make(map[Point]bool) // Moved outside the loop
-
-	for len(queue) > 0 {
-		current := queue[0]
-		queue = queue[1:]
-
-		if current.point == end {
-			paths = append(paths, current.steps)
-			continue
-		}
-
-		for _, neighbor := range neighbors(current.point) {
-			if len(current.steps) > earlyStop {
-				continue
-			}
-
-			if walls[neighbor] || visited[neighbor] {
-				continue
-			}
-
-			visited[neighbor] = true // Mark as visited
-
-			tmp := make([]Point, len(current.steps)+1)
-			copy(tmp, current.steps)
-			tmp[len(tmp)-1] = neighbor
-			queue = append(queue, Step{neighbor, tmp})
-		}
-	}
-	return paths
-}
-
-func parse(input string) (map[Point]bool, Point, Point) {
+func parse(input string) (map[Point]bool, Point, Point, map[Point]bool) {
 	walls := make(map[Point]bool)
+	free := make(map[Point]bool)
 	var start, end Point
 	for y, line := range strings.Split(input, "\n") {
 		for x, char := range line {
@@ -156,10 +132,10 @@ func parse(input string) (map[Point]bool, Point, Point) {
 				start = Point{y, x}
 			} else if char == 'E' {
 				end = Point{y, x}
+			} else {
+				free[Point{y, x}] = true
 			}
 		}
 	}
-	return walls, start, end
+	return walls, start, end, free
 }
-
-//1310 too low
