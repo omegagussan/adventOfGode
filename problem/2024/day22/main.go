@@ -30,22 +30,16 @@ func part1(split []string) int {
 func next(secret int) int {
 	secret = mix(64*secret, secret)
 	secret = prune(secret)
-	r := secret / 32
-	secret = mix(r, secret)
+	secret = mix(secret/32, secret)
 	secret = prune(secret)
 	secret = mix(2048*secret, secret)
-	secret = prune(secret)
-	return secret
+	return prune(secret)
 }
 
 func mix(given, secret int) int {
-	//bitwise XOR
-	secret = given ^ secret
-	return secret
+	return given ^ secret
 }
 
 func prune(secret int) int {
-	//bitwise AND
-	secret = secret % 16777216
-	return secret
+	return secret % 16777216
 }
