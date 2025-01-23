@@ -56,3 +56,123 @@ func TestPart1(t *testing.T) {
 		t.Errorf("Expected 37327623, got %d", res)
 	}
 }
+
+func TestGetLastDigit(t *testing.T) {
+	res := getLastDigit(123)
+	if res != 3 {
+		t.Errorf("Expected 3, got %d", res)
+	}
+}
+
+func TestPart2(t *testing.T) {
+	split := []string{
+		"1",
+		"2",
+		"3",
+		"2024",
+	}
+	res := part2(split)
+	if res != 23 {
+		t.Errorf("Expected 23, got %d", res)
+	}
+}
+
+func TestPricesAndDiffs(t *testing.T) {
+	resP, resD := pricesAndDiffs("123", 10)
+
+	expP := []int{
+		3,
+		0,
+		6,
+		5,
+		4,
+		4,
+		6,
+		4,
+		4,
+		2,
+	}
+
+	expD := []int{
+		0,
+		-3,
+		6,
+		-1,
+		-1,
+		0,
+		2,
+		-2,
+		0,
+		-2,
+	}
+
+	if !(equalArr(resP, expP)) {
+		t.Errorf("Expected %v, got %v", expP, resP)
+	}
+	if !(equalArr(resD, expD)) {
+		t.Errorf("Expected %v, got %v", expD, resD)
+	}
+
+}
+
+func TestBestSequence(t *testing.T) {
+	prices := []int{
+		3,
+		0,
+		6,
+		5,
+		4,
+		4,
+		6,
+		4,
+		4,
+		2,
+	}
+	changes := []int{
+		-3,
+		6,
+		-1,
+		-1,
+		0,
+		2,
+		-2,
+		0,
+		-2,
+	}
+	m := bestSequence(prices, changes)
+	best := 0
+	bestSeq := sequence{}
+	for k, v := range m {
+		if v > best {
+			best = v
+			bestSeq = k
+		}
+	}
+	if !equal(bestSeq, sequence{-1, 0, 2, -2}) {
+		t.Errorf("Expected sequence{-1, 0, 2, -2}, got %v", bestSeq)
+	}
+	if best != 6 {
+		t.Errorf("Expected 6, got %d", best)
+	}
+}
+
+func equal(a, b sequence) bool {
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func equalArr(a, b []int) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
