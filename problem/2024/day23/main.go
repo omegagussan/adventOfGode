@@ -40,10 +40,7 @@ func part1(input []string) int {
 
 	// turn into unique sets
 	groups := make(map[group]struct{})
-	progress := 0
 	for key, value := range connections {
-		fmt.Println(progress)
-		progress++
 		if key[0] != 't' {
 			continue
 		}
