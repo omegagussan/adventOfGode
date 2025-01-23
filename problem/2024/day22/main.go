@@ -30,15 +30,8 @@ func part1(split []string) int {
 	return sum
 }
 
-func getLastDigit(num int) int {
-	str := strconv.Itoa(num)
-	i, _ := strconv.Atoi(string(str[len(str)-1]))
-	return i
-}
-
 func part2(split []string) int {
 	mapz := make(map[sequence]int)
-
 	for _, s := range split {
 		prices, diffs := pricesAndDiffs(s, 2000)
 		m := bestSequence(prices, diffs)
@@ -46,7 +39,6 @@ func part2(split []string) int {
 			mapz[k] += v
 		}
 	}
-
 	highest := 0
 	for _, sumVal := range mapz {
 		if sumVal > highest {
@@ -59,30 +51,22 @@ func part2(split []string) int {
 func bestSequence(prices, changes []int) map[sequence]int {
 	m := make(map[sequence]int)
 	for i := 4; i < len(changes); i++ {
-		seq := sequence{
-			changes[i-3],
-			changes[i-2],
-			changes[i-1],
-			changes[i],
-		}
-		//pick the first occurance
+		seq := sequence{changes[i-3], changes[i-2], changes[i-1], changes[i]}
 		if _, exists := m[seq]; !exists {
 			m[seq] = prices[i]
 		}
 	}
-
 	return m
 }
 
 func pricesAndDiffs(s string, l int) ([]int, []int) {
 	prices := make([]int, l)
 	diffs := make([]int, l)
-	init, _ := strconv.Atoi(s)
-	prices[0] = init % 10
-	diffs[0] = 0
+	val, _ := strconv.Atoi(s)
+	prices[0] = val % 10
 	for i := 1; i < l; i++ {
-		init = next(init)
-		prices[i] = init % 10
+		val = next(val)
+		prices[i] = val % 10
 		diffs[i] = prices[i] - prices[i-1]
 	}
 	return prices, diffs
