@@ -11,7 +11,7 @@ type group struct {
 }
 
 func (g group) sort() group {
-	sorted := g.connections
+	sorted := g.connections[:]
 	for i := 0; i < 2; i++ {
 		for j := i + 1; j < 3; j++ {
 			if sorted[i] > sorted[j] {
@@ -19,9 +19,9 @@ func (g group) sort() group {
 			}
 		}
 	}
-	return group{sorted}
-
+	return group{[3]string{sorted[0], sorted[1], sorted[2]}}
 }
+
 func main() {
 	dir, _ := os.Getwd()
 	bytes, _ := os.ReadFile(dir + "/problem/2024/day23/input.txt")
@@ -38,24 +38,18 @@ func part1(input []string) int {
 		connections[split[1]] = append(connections[split[1]], split[0])
 	}
 
-	// turn into unique sets
 	groups := make(map[group]struct{})
 	for key, value := range connections {
 		if key[0] != 't' {
 			continue
 		}
-		candidates := getPairs(value)
-		for _, candidate := range candidates {
+		for _, candidate := range getPairs(value) {
 			if contains(connections[candidate.a], candidate.b) {
-				g := group{[3]string{key, candidate.a, candidate.b}}
-				g = g.sort()
+				g := group{[3]string{key, candidate.a, candidate.b}}.sort()
 				groups[g] = struct{}{}
 			}
 		}
-
 	}
-
-	//fmt.Println(groups)
 	return len(groups)
 }
 
@@ -73,7 +67,7 @@ type pair struct {
 }
 
 func getPairs(s []string) []pair {
-	pairs := make([]pair, 0)
+	var pairs []pair
 	for i := 0; i < len(s); i++ {
 		for j := i + 1; j < len(s); j++ {
 			pairs = append(pairs, pair{s[i], s[j]})
