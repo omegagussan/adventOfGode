@@ -13,13 +13,7 @@ type group struct {
 
 func (g group) sort() group {
 	sorted := g.connections[:]
-	for i := 0; i < 2; i++ {
-		for j := i + 1; j < 3; j++ {
-			if sorted[i] > sorted[j] {
-				sorted[i], sorted[j] = sorted[j], sorted[i]
-			}
-		}
-	}
+	sort.Strings(sorted)
 	return group{[3]string{sorted[0], sorted[1], sorted[2]}}
 }
 
@@ -32,59 +26,8 @@ func main() {
 	fmt.Println(part2(split))
 }
 
-func part2(input []string) string {
-	connections := make(map[string][]string)
-	for _, line := range input {
-		split := strings.Split(line, "-")
-		connections[split[0]] = append(connections[split[0]], split[1])
-		connections[split[1]] = append(connections[split[1]], split[0])
-	}
-
-	pools := make(map[string]struct{})
-	for key, _ := range connections {
-		pools[key] = struct{}{}
-	}
-	old := make(map[string]struct{})
-
-	for hash(old) != hash(pools) {
-		for current, _ := range connections {
-			for pool, _ := range pools {
-				if containz(connections, pool, current) {
-					pool2 := sortKey(pool + "," + current)
-					delete(pools, pool)
-					pools[pool2] = struct{}{}
-				}
-			}
-		}
-		old = pools
-	}
-
-	//find the longest pool
-	longest := ""
-	for pool, _ := range pools {
-		if len(pool) > len(longest) {
-			longest = pool
-		}
-	}
-	return longest
-}
-
-func hash(m map[string]struct{}) int {
-	h := 0
-	for key, _ := range m {
-		h += len(key)
-	}
-	return h
-}
-
 func part1(input []string) int {
-	connections := make(map[string][]string)
-	for _, line := range input {
-		split := strings.Split(line, "-")
-		connections[split[0]] = append(connections[split[0]], split[1])
-		connections[split[1]] = append(connections[split[1]], split[0])
-	}
-
+	connections := parseConnections(input)
 	groups := make(map[group]struct{})
 	for key, value := range connections {
 		if key[0] != 't' {
@@ -98,6 +41,54 @@ func part1(input []string) int {
 		}
 	}
 	return len(groups)
+}
+
+func part2(input []string) string {
+	connections := parseConnections(input)
+	pools := make(map[string]struct{})
+	for key := range connections {
+		pools[key] = struct{}{}
+	}
+	old := make(map[string]struct{})
+
+	for hash(old) != hash(pools) {
+		for current := range connections {
+			for pool := range pools {
+				if containz(connections, pool, current) {
+					pool2 := sortKey(pool + "," + current)
+					delete(pools, pool)
+					pools[pool2] = struct{}{}
+				}
+			}
+		}
+		old = pools
+	}
+
+	longest := ""
+	for pool := range pools {
+		if len(pool) > len(longest) {
+			longest = pool
+		}
+	}
+	return longest
+}
+
+func parseConnections(input []string) map[string][]string {
+	connections := make(map[string][]string)
+	for _, line := range input {
+		split := strings.Split(line, "-")
+		connections[split[0]] = append(connections[split[0]], split[1])
+		connections[split[1]] = append(connections[split[1]], split[0])
+	}
+	return connections
+}
+
+func hash(m map[string]struct{}) int {
+	h := 0
+	for key := range m {
+		h += len(key)
+	}
+	return h
 }
 
 func contains(s []string, e string) bool {
@@ -121,8 +112,7 @@ func sortKey(s string) string {
 
 func containz(connections map[string][]string, s string, e string) bool {
 	for _, k := range getKeys(s) {
-		conns := connections[k]
-		if !contains(conns, e) {
+		if !contains(connections[k], e) {
 			return false
 		}
 	}
